@@ -18,3 +18,12 @@ build/
 htmlcov/
 
 .DS_Store
+
+chroma_db/*
+!chroma_db/.gitkeep
+
+data/raw/patients/*
+!data/raw/patients/.gitkeep
+
+data/processed/*
+!data/processed/.gitkeep
