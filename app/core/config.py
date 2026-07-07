@@ -35,6 +35,14 @@ class Settings(BaseSettings):
             written.
         data_processed_dir: Directory reserved for processed data
             artifacts.
+        top_k: Number of nearest neighbors requested from Chroma per
+            query.
+        min_similarity_score: Minimum similarity score a retrieved chunk
+            must have to be included in results.
+        max_results: Maximum number of results returned to the caller
+            after filtering.
+        default_collection_name: Fallback Chroma collection name used
+            when no explicit collection is configured.
     """
 
     app_name: str = "Clinical Copilot API"
@@ -53,6 +61,11 @@ class Settings(BaseSettings):
     chroma_path: Path = Path("chroma_db")
     data_raw_dir: Path = Path("data/raw/patients")
     data_processed_dir: Path = Path("data/processed")
+
+    top_k: int = 5
+    min_similarity_score: float = 0.0
+    max_results: int = 20
+    default_collection_name: str = "clinical_notes"
 
     model_config = SettingsConfigDict(
         env_file=".env",
