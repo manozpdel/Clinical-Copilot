@@ -1,0 +1,1 @@
+"""Test package for the Clinical Copilot application."""
