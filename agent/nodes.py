@@ -1,10 +1,11 @@
 """LangGraph node wiring for the Clinical Copilot agent.
 
 This module is responsible ONLY for adapting the pure domain functions
-in `planner.py`, `retriever_node.py`, `generator_node.py`, and
-`evaluator_node.py` into LangGraph-compatible node callables that
-accept and return `AgentState`. It contains no planning, retrieval,
-generation, or evaluation logic of its own.
+in `planner.py`, `retriever_node.py`, `generator_node.py`,
+`evaluator_node.py`, and the `tools` package into LangGraph-compatible
+node callables that accept and return `AgentState`. It contains no
+planning, retrieval, generation, evaluation, or tool-execution logic
+of its own.
 """
 
 from collections.abc import Callable
@@ -19,7 +20,11 @@ from app.core.config import Settings
 from app.core.logging import get_logger
 from ingest.embeddings import EmbeddingModel
 from llm.client import GroqClient
+from llm.prompts import build_context
+from rag.models import RetrievedChunk
 from rag.retriever import ChromaRetriever
+from tools.models import ToolName
+from tools.router import ToolRouter
 
 logger = get_logger(__name__)
 
@@ -42,6 +47,89 @@ def make_planner_node() -> NodeFn:
         )
         logger.info("planner_node_complete", request_id=planned_state["request_id"])
         return dict(planned_state)
+
+    return node
+
+
+def _tool_output_to_chunk(
+    tool_name: str, patient_id: str, data: dict[str, Any]
+) -> RetrievedChunk:
+    """Adapt a mock tool's structured output into a RetrievedChunk.
+
+    This lets the existing generator and evaluator nodes (which operate
+    on `RetrievedChunk` objects) consume tool output without any
+    modification, avoiding duplicated generation or citation logic.
+
+    Args:
+        tool_name: Name of the mock tool that produced the data.
+        patient_id: Identifier of the patient the data belongs to.
+        data: The tool's structured output payload.
+
+    Returns:
+        RetrievedChunk: A synthetic chunk wrapping the tool output.
+    """
+    lines = [f"{key.replace('_', ' ').title()}: {value}" for key, value in data.items()]
+    text = "\n".join(lines)
+
+    return RetrievedChunk(
+        chunk_id=f"tool_{tool_name}_{patient_id}",
+        patient_id=patient_id,
+        source_file=f"mock_{tool_name}_api",
+        text=text,
+        similarity=1.0,
+    )
+
+
+def make_tool_router_node(tool_router: ToolRouter) -> NodeFn:
+    """Build the LangGraph node function for the tool routing stage.
+
+    Args:
+        tool_router: The tool router used to select and execute mock
+            clinical tools.
+
+    Returns:
+        NodeFn: A node function that selects a tool for the question
+            and, if a mock tool applies, executes it and adapts its
+            output into retrieval-compatible state fields. When no
+            mock tool applies, the question is routed to semantic
+            retrieval instead.
+    """
+
+    def node(state: AgentState) -> dict[str, Any]:
+        result = tool_router.route(state["question"])
+        metadata = {
+            **state.get("metadata", {}),
+            "stage": "routed",
+            "selected_tool": result.tool_name,
+        }
+
+        if result.tool_name == ToolName.RETRIEVAL.value or result.output is None:
+            logger.info("tool_router_node_complete", selected_tool=result.tool_name)
+            return {
+                "selected_tool": result.tool_name,
+                "tool_output": None,
+                "metadata": metadata,
+            }
+
+        chunk = _tool_output_to_chunk(
+            tool_name=result.tool_name,
+            patient_id=result.patient_id or "unknown",
+            data=result.output.data,
+        )
+        context = build_context([chunk])
+
+        logger.info(
+            "tool_router_node_complete",
+            selected_tool=result.tool_name,
+            patient_id=result.patient_id,
+        )
+        return {
+            "selected_tool": result.tool_name,
+            "tool_output": result.output.data,
+            "retrieved_chunks": [chunk],
+            "formatted_context": context,
+            "metadata": metadata,
+        }
 
     return node
 
@@ -89,7 +177,7 @@ def make_generator_node(client: GroqClient) -> NodeFn:
 
     Returns:
         NodeFn: A node function that generates an answer with
-            citations from the retrieved context.
+            citations from the retrieved (or tool-derived) context.
     """
 
     def node(state: AgentState) -> dict[str, Any]:

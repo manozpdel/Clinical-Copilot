@@ -69,11 +69,17 @@ class Settings(BaseSettings):
             single evaluation run.
         graph_name: Human-readable name of the LangGraph agent graph.
         enable_evaluation: Whether the agent's evaluator node should run
-            LLM-as-a-judge scoring. When disabled, the evaluator node
-            still runs but skips the LLM call.
+            LLM-as-a-judge scoring.
         default_top_k: Default number of chunks the agent's retriever
-            node requests, independent of the standalone RAG CLI's
-            `top_k` setting.
+            node requests.
+        max_tool_retries: Maximum number of retry attempts for a mock
+            clinical tool call before giving up.
+        retry_delay: Delay, in seconds, between mock clinical tool retry
+            attempts.
+        default_timeout: Default timeout, in seconds, allotted to a
+            mock clinical tool call.
+        enable_tool_validation: Whether mock clinical tool inputs and
+            outputs are validated before/after execution.
     """
 
     app_name: str = "Clinical Copilot API"
@@ -118,6 +124,11 @@ class Settings(BaseSettings):
     graph_name: str = "clinical_copilot_agent"
     enable_evaluation: bool = True
     default_top_k: int = 8
+
+    max_tool_retries: int = 3
+    retry_delay: float = 0.5
+    default_timeout: float = 10.0
+    enable_tool_validation: bool = True
 
     model_config = SettingsConfigDict(
         env_file=".env",
