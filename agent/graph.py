@@ -18,7 +18,6 @@ Tool Router node, and execution proceeds straight to the Generator.
 from langgraph.graph import END, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
-from app.core.config import Settings, get_settings
 from agent.nodes import (
     make_evaluator_node,
     make_generator_node,
@@ -27,6 +26,7 @@ from agent.nodes import (
     make_tool_router_node,
 )
 from agent.state import AgentState
+from app.core.config import Settings, get_settings
 from ingest.embeddings import EmbeddingModel
 from llm.client import GroqClient, build_faithfulness_client, build_generation_client
 from rag.retriever import ChromaRetriever

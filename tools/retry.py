@@ -16,7 +16,7 @@ class RetryExhaustedError(Exception):
     """Raised when a retried call still fails after all attempts."""
 
 
-def retry_call(
+def retry_call[T](
     func: Callable[[], T],
     max_attempts: int,
     delay_seconds: float,

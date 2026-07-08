@@ -5,13 +5,13 @@ across the tools package. It contains no tool implementation,
 registration, routing, validation, or retry logic.
 """
 
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
 
 
-class ToolName(str, Enum):
+class ToolName(StrEnum):
     """Identifiers for every routable option in the tools layer.
 
     Attributes:
