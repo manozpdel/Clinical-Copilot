@@ -67,6 +67,13 @@ class Settings(BaseSettings):
             retries.
         eval_sample_size: Maximum number of QA pairs to evaluate in a
             single evaluation run.
+        graph_name: Human-readable name of the LangGraph agent graph.
+        enable_evaluation: Whether the agent's evaluator node should run
+            LLM-as-a-judge scoring. When disabled, the evaluator node
+            still runs but skips the LLM call.
+        default_top_k: Default number of chunks the agent's retriever
+            node requests, independent of the standalone RAG CLI's
+            `top_k` setting.
     """
 
     app_name: str = "Clinical Copilot API"
@@ -107,6 +114,10 @@ class Settings(BaseSettings):
     llm_retry_max_delay: float = 60.0
 
     eval_sample_size: int = 10
+
+    graph_name: str = "clinical_copilot_agent"
+    enable_evaluation: bool = True
+    default_top_k: int = 8
 
     model_config = SettingsConfigDict(
         env_file=".env",
