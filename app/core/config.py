@@ -80,6 +80,19 @@ class Settings(BaseSettings):
             mock clinical tool call.
         enable_tool_validation: Whether mock clinical tool inputs and
             outputs are validated before/after execution.
+        transcription_api_key: Groq API key used for audio
+            transcription. Falls back to `generation_api_key` when not
+            set.
+        groq_whisper_model: Name of the Groq Whisper transcription
+            model to use.
+        max_audio_duration: Maximum allowed audio duration, in seconds,
+            for a single transcription request.
+        supported_audio_formats: File extensions accepted by the audio
+            loader, without leading dots.
+        max_conversation_history: Maximum number of turns retained per
+            conversation session before older turns are discarded.
+        enable_memory: Whether conversation memory is recorded and
+            supplied back to the agent.
     """
 
     app_name: str = "Clinical Copilot API"
@@ -129,6 +142,13 @@ class Settings(BaseSettings):
     retry_delay: float = 0.5
     default_timeout: float = 10.0
     enable_tool_validation: bool = True
+
+    transcription_api_key: str = ""
+    groq_whisper_model: str = "whisper-large-v3"
+    max_audio_duration: float = 300.0
+    supported_audio_formats: tuple[str, ...] = ("wav", "mp3", "m4a")
+    max_conversation_history: int = 20
+    enable_memory: bool = True
 
     model_config = SettingsConfigDict(
         env_file=".env",
