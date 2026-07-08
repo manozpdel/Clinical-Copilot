@@ -2,8 +2,8 @@
 
 import pytest
 
-from voice.transcriber import Transcriber, TranscriptionError
 from voice.models import TranscriptionResult
+from voice.transcriber import Transcriber, TranscriptionError
 
 
 class _FlakyTranscriber(Transcriber):
