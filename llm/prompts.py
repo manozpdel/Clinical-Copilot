@@ -14,8 +14,13 @@ SYSTEM_PROMPT = (
     "provided below. Never use outside knowledge and never hallucinate "
     "facts that are not present in the context. If the context does not "
     "contain enough information to answer the question, say so "
-    "explicitly. Every factual statement in your answer must cite the "
-    "Patient ID, Chunk ID, and Source File it came from."
+    "explicitly. "
+    "Write your answer in plain, natural prose. Do NOT include inline "
+    "citations, parenthetical source references, or phrases like "
+    "'Patient ID:', 'Chunk ID:', or 'Source File:' within your answer "
+    "text itself — a separate citations section listing this "
+    "information is appended automatically after your response, so "
+    "your job is only to write the answer, not the citations."
 )
 
 
@@ -75,8 +80,9 @@ def build_user_prompt(question: str, context: str) -> str:
         "Instructions:\n"
         "- Answer using only the retrieved context above.\n"
         "- Never hallucinate information not present in the context.\n"
-        "- Cite the Patient ID, Chunk ID, and Source File for every "
-        "factual statement."
+        "- Write plain prose only. Do not include Patient ID, Chunk ID, "
+        "or Source File references inline in your answer — citations "
+        "are handled separately."
     )
 
 

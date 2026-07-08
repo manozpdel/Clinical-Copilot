@@ -2,7 +2,7 @@
 
 This module is responsible ONLY for defining the shape of state that
 flows through the graph. It contains no node logic, retrieval logic,
-or generation logic.
+generation logic, or tool logic.
 """
 
 from typing import Any, TypedDict
@@ -15,7 +15,12 @@ class AgentState(TypedDict, total=False):
 
     Attributes:
         question: The normalized user question.
-        retrieved_chunks: Chunks retrieved for the question.
+        selected_tool: Name of the tool selected by the tool router, or
+            "retrieval" when no mock tool applies.
+        tool_output: Raw structured data returned by the selected mock
+            tool, or None when retrieval was selected instead.
+        retrieved_chunks: Chunks retrieved for the question, either from
+            semantic retrieval or adapted from a mock tool's output.
         formatted_context: The retrieved chunks assembled into a single
             context block.
         prompt: The user-facing prompt sent to the language model.
@@ -29,6 +34,8 @@ class AgentState(TypedDict, total=False):
     """
 
     question: str
+    selected_tool: str
+    tool_output: dict[str, Any] | None
     retrieved_chunks: list[RetrievedChunk]
     formatted_context: str
     prompt: str
@@ -49,6 +56,8 @@ def create_empty_state() -> AgentState:
     """
     return AgentState(
         question="",
+        selected_tool="",
+        tool_output=None,
         retrieved_chunks=[],
         formatted_context="",
         prompt="",
