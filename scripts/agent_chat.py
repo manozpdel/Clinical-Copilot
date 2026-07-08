@@ -1,9 +1,9 @@
 """CLI entry point for chatting with the LangGraph-powered Clinical Copilot agent."""
 
-from app.core.config import get_settings
-from app.core.logging import configure_logging, get_logger
 from agent.graph import build_graph
 from agent.state import create_empty_state
+from app.core.config import get_settings
+from app.core.logging import configure_logging, get_logger
 
 
 def main() -> None:

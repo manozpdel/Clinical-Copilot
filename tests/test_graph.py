@@ -1,7 +1,7 @@
 """Tests for agent graph construction."""
 
-from app.core.config import Settings
 from agent.graph import build_graph
+from app.core.config import Settings
 
 
 class _FakeGroqClient:
