@@ -16,16 +16,16 @@ class Settings(BaseSettings):
     Attributes:
         app_name: Human-readable name of the application.
         app_version: Semantic version of the application.
-        environment: Deployment environment identifier (e.g. "development",
-            "production").
+        environment: Deployment environment identifier.
         debug: Whether debug mode is enabled.
         log_level: Minimum log level emitted by the logging system.
         host: Host interface the application binds to.
         port: Port the application listens on.
         patient_count: Number of synthetic patient records to generate.
-        chunk_size: Number of words per document chunk.
+        chunk_size: Maximum number of words per document chunk before a
+            section is split further.
         chunk_overlap: Number of overlapping words between consecutive
-            chunks.
+            sub-chunks, for sections that exceed `chunk_size`.
         collection_name: Name of the Chroma collection used to store
             clinical note embeddings.
         embedding_model: Name of the FastEmbed embedding model to use.
@@ -43,6 +43,30 @@ class Settings(BaseSettings):
             after filtering.
         default_collection_name: Fallback Chroma collection name used
             when no explicit collection is configured.
+        generation_api_key: Groq API key used for answer generation.
+        generation_model: Groq model used for answer generation.
+        faithfulness_api_key: Groq API key used for faithfulness
+            judging.
+        faithfulness_model: Groq model used for faithfulness judging.
+        relevance_api_key: Groq API key used for answer relevance
+            judging.
+        relevance_model: Groq model used for answer relevance judging.
+        temperature: Sampling temperature passed to the language model.
+        max_tokens: Maximum number of tokens the language model may
+            generate per response.
+        llm_timeout: Maximum time, in seconds, to wait for a language
+            model response before timing out.
+        llm_max_retries: Maximum number of automatic retries on
+            transient language model request failures, including rate
+            limiting.
+        llm_requests_per_minute: Maximum number of requests any single
+            client is allowed to issue per minute.
+        llm_retry_base_delay: Base delay, in seconds, for exponential
+            backoff between retries.
+        llm_retry_max_delay: Maximum delay, in seconds, allowed between
+            retries.
+        eval_sample_size: Maximum number of QA pairs to evaluate in a
+            single evaluation run.
     """
 
     app_name: str = "Clinical Copilot API"
@@ -54,18 +78,35 @@ class Settings(BaseSettings):
     port: int = 8000
 
     patient_count: int = 20
-    chunk_size: int = 500
-    chunk_overlap: int = 50
+    chunk_size: int = 120
+    chunk_overlap: int = 20
     collection_name: str = "clinical_notes"
     embedding_model: str = "BAAI/bge-small-en-v1.5"
     chroma_path: Path = Path("chroma_db")
     data_raw_dir: Path = Path("data/raw/patients")
     data_processed_dir: Path = Path("data/processed")
 
-    top_k: int = 5
+    top_k: int = 8
     min_similarity_score: float = 0.0
     max_results: int = 20
     default_collection_name: str = "clinical_notes"
+
+    generation_api_key: str = ""
+    generation_model: str = "llama-3.3-70b-versatile"
+    faithfulness_api_key: str = ""
+    faithfulness_model: str = "llama-3.1-8b-instant"
+    relevance_api_key: str = ""
+    relevance_model: str = "llama-3.1-8b-instant"
+
+    temperature: float = 0.0
+    max_tokens: int = 1024
+    llm_timeout: float = 30.0
+    llm_max_retries: int = 5
+    llm_requests_per_minute: int = 20
+    llm_retry_base_delay: float = 2.0
+    llm_retry_max_delay: float = 60.0
+
+    eval_sample_size: int = 10
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -78,9 +119,6 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     """Return a cached instance of the application settings.
-
-    Using an LRU cache ensures the settings object is constructed once
-    and reused across the application lifecycle.
 
     Returns:
         Settings: The cached application settings instance.
