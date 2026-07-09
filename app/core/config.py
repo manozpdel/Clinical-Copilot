@@ -93,6 +93,13 @@ class Settings(BaseSettings):
             conversation session before older turns are discarded.
         enable_memory: Whether conversation memory is recorded and
             supplied back to the agent.
+        api_version: Version identifier reported by the REST API.
+        max_upload_size: Maximum allowed size, in bytes, for an
+            uploaded audio file on the voice endpoint.
+        static_files_path: Filesystem path to the static frontend
+            assets served alongside the API.
+        enable_frontend: Whether the static frontend is mounted and
+            served by the application.
     """
 
     app_name: str = "Clinical Copilot API"
@@ -149,6 +156,11 @@ class Settings(BaseSettings):
     supported_audio_formats: tuple[str, ...] = ("wav", "mp3", "m4a")
     max_conversation_history: int = 20
     enable_memory: bool = True
+
+    api_version: str = "1.0.0"
+    max_upload_size: int = 10_000_000
+    static_files_path: Path = Path("frontend")
+    enable_frontend: bool = True
 
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -4,8 +4,10 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 from app.api import health
+from app.api.router import api_router
 from app.core.config import get_settings
 from app.core.constants import ROOT_MESSAGE
 from app.core.logging import configure_logging, get_logger
@@ -42,6 +44,14 @@ app = FastAPI(
 )
 
 app.include_router(health.router)
+app.include_router(api_router)
+
+if settings.enable_frontend and settings.static_files_path.exists():
+    app.mount(
+        "/app",
+        StaticFiles(directory=str(settings.static_files_path), html=True),
+        name="frontend",
+    )
 
 
 @app.get("/")

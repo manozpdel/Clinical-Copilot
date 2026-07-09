@@ -1,0 +1,193 @@
+:root {
+    --color-bg: #0f172a;
+    --color-surface: #1e293b;
+    --color-surface-alt: #273449;
+    --color-border: #334155;
+    --color-text: #e2e8f0;
+    --color-muted: #94a3b8;
+    --color-primary: #38bdf8;
+    --color-primary-hover: #0ea5e9;
+    --color-error: #f87171;
+    --radius: 10px;
+  }
+  
+  * {
+    box-sizing: border-box;
+  }
+  
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+  
+  .app-shell {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 24px 16px 64px;
+  }
+  
+  .app-header h1 {
+    margin: 0 0 4px;
+    font-size: 1.75rem;
+  }
+  
+  .subtitle {
+    margin: 0 0 24px;
+    color: var(--color-muted);
+  }
+  
+  .input-panel {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+  
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  
+  .tab-button {
+    flex: 1;
+    padding: 10px;
+    background: var(--color-surface-alt);
+    color: var(--color-muted);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: 600;
+  }
+  
+  .tab-button.active {
+    background: var(--color-primary);
+    color: #0f172a;
+    border-color: var(--color-primary);
+  }
+  
+  .tab-content {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .tab-content.active {
+    display: flex;
+  }
+  
+  label {
+    font-size: 0.9rem;
+    color: var(--color-muted);
+  }
+  
+  textarea,
+  input[type="file"] {
+    background: var(--color-surface-alt);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    color: var(--color-text);
+    padding: 10px;
+    font-size: 1rem;
+    resize: vertical;
+  }
+  
+  .primary-button {
+    align-self: flex-start;
+    background: var(--color-primary);
+    color: #0f172a;
+    border: none;
+    border-radius: var(--radius);
+    padding: 10px 20px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  
+  .primary-button:hover {
+    background: var(--color-primary-hover);
+  }
+  
+  .loading-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+    color: var(--color-muted);
+  }
+  
+  .spinner {
+    width: 18px;
+    height: 18px;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  .error-banner {
+    margin-top: 20px;
+    background: rgba(248, 113, 113, 0.15);
+    border: 1px solid var(--color-error);
+    color: var(--color-error);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+  }
+  
+  .result-panel {
+    margin-top: 20px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+  }
+  
+  .result-panel h2 {
+    margin-top: 0;
+    font-size: 1.1rem;
+    color: var(--color-primary);
+  }
+  
+  #citations-list {
+    margin: 0;
+    padding-left: 20px;
+    color: var(--color-muted);
+  }
+  
+  .evaluation-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 16px;
+    margin: 0;
+  }
+  
+  .evaluation-grid dt {
+    color: var(--color-muted);
+    font-size: 0.85rem;
+  }
+  
+  .evaluation-grid dd {
+    margin: 0;
+    font-weight: 600;
+  }
+  
+  .hidden {
+    display: none !important;
+  }
+  
+  @media (max-width: 480px) {
+    .app-shell {
+      padding: 16px 12px 48px;
+    }
+  
+    .evaluation-grid {
+      grid-template-columns: 1fr;
+    }
+  }
