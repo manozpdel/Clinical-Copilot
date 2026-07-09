@@ -3,7 +3,7 @@ target-version = "py312"
 
 [lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "N"]
-ignore = []
+ignore = ["B008"]
 
 [lint.isort]
 known-first-party = ["app"]

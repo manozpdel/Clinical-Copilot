@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clinical Copilot</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <h1>Clinical Copilot</h1>
+      <p class="subtitle">Ask a clinical question, by text or by voice.</p>
+    </header>
+
+    <main class="app-main">
+      <section class="input-panel">
+        <div class="tabs">
+          <button class="tab-button active" data-tab="text-tab" type="button">Text</button>
+          <button class="tab-button" data-tab="voice-tab" type="button">Voice</button>
+        </div>
+
+        <form id="text-tab" class="tab-content active" novalidate>
+          <label for="question-input">Your question</label>
+          <textarea id="question-input" rows="3" placeholder="e.g. What medications is patient P0005 taking?"></textarea>
+          <button id="submit-text-button" class="primary-button" type="submit">Ask</button>
+        </form>
+
+        <form id="voice-tab" class="tab-content" novalidate>
+          <label for="audio-input">Upload audio (.wav, .mp3, .m4a)</label>
+          <input id="audio-input" type="file" accept=".wav,.mp3,.m4a,audio/*" />
+          <button id="submit-voice-button" class="primary-button" type="submit">Ask by voice</button>
+        </form>
+      </section>
+
+      <div id="loading-indicator" class="loading-indicator hidden">
+        <div class="spinner"></div>
+        <span>Thinking...</span>
+      </div>
+
+      <div id="error-banner" class="error-banner hidden" role="alert"></div>
+
+      <section id="transcript-panel" class="result-panel hidden">
+        <h2>Transcript</h2>
+        <p id="transcript-text"></p>
+      </section>
+
+      <section id="answer-panel" class="result-panel hidden">
+        <h2>Answer</h2>
+        <p id="answer-text"></p>
+      </section>
+
+      <section id="citations-panel" class="result-panel hidden">
+        <h2>Citations</h2>
+        <ul id="citations-list"></ul>
+      </section>
+
+      <section id="evaluation-panel" class="result-panel hidden">
+        <h2>Evaluation</h2>
+        <dl id="evaluation-list" class="evaluation-grid"></dl>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

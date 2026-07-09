@@ -43,11 +43,41 @@ def test_extract_patient_id_returns_none_when_absent() -> None:
     assert router.extract_patient_id("What is diabetes?") is None
 
 
+def test_extract_patient_id_accepts_space_separated_phrasing() -> None:
+    """'patient 005' (no P prefix) should normalize to 'P0005'."""
+    router = _build_router()
+
+    assert router.extract_patient_id("Show medications for patient 005") == "P0005"
+
+
+def test_extract_patient_id_accepts_underscore_phrasing() -> None:
+    """'patient_005' should normalize to 'P0005'."""
+    router = _build_router()
+
+    assert router.extract_patient_id("Show medications for patient_005") == "P0005"
+
+
+def test_extract_patient_id_accepts_short_number_without_padding() -> None:
+    """'P5' should normalize to the zero-padded 'P0005'."""
+    router = _build_router()
+
+    assert router.extract_patient_id("Show medications for P5") == "P0005"
+
+
 def test_select_tool_routes_medications_to_ehr() -> None:
     """A medications question with a patient ID should route to the EHR tool."""
     router = _build_router()
 
     assert router.select_tool("Show medications for patient P0005") == (
+        ToolName.EHR.value
+    )
+
+
+def test_select_tool_routes_medications_with_flexible_phrasing() -> None:
+    """A medications question phrased as 'patient 005' should still route to EHR."""
+    router = _build_router()
+
+    assert router.select_tool("Show medications for patient 005") == (
         ToolName.EHR.value
     )
 

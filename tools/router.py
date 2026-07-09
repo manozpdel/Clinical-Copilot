@@ -20,7 +20,9 @@ from tools.validator import (
 
 logger = get_logger(__name__)
 
-_PATIENT_ID_PATTERN = re.compile(r"\bP\d{3,4}\b", re.IGNORECASE)
+_PATIENT_ID_PATTERN = re.compile(
+    r"\bP(?:ATIENT)?[\s_-]*0*(\d{1,4})\b", re.IGNORECASE
+)
 
 _EHR_KEYWORDS: tuple[str, ...] = (
     "medication", "medications", "allergy", "allergies", "medical history",
@@ -66,17 +68,25 @@ class ToolRouter:
         self._enable_validation = enable_validation
 
     def extract_patient_id(self, question: str) -> str | None:
-        """Extract a mock patient ID from a question, if present.
+        """Extract and normalize a mock patient ID from a question.
+
+        Accepts flexible phrasing such as "P0005", "p5", "patient 5",
+        "patient_005", or "Patient005", and normalizes any match to the
+        canonical zero-padded "P####" format used by the mock tool
+        population (distinct from the "patient_###" IDs used by the
+        Part 2/3 RAG corpus).
 
         Args:
             question: The user's natural language question.
 
         Returns:
-            str | None: The normalized, uppercase patient ID (e.g.
-                "P0005"), or None if no matching pattern is found.
+            str | None: The normalized patient ID (e.g. "P0005"), or
+                None if no matching pattern is found.
         """
         match = _PATIENT_ID_PATTERN.search(question)
-        return match.group(0).upper() if match else None
+        if not match:
+            return None
+        return f"P{int(match.group(1)):04d}"
 
     def select_tool(self, question: str) -> str:
         """Select which tool applies to a question using keyword rules.
