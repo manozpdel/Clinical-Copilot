@@ -60,10 +60,21 @@ def test_submit_query_returns_answer_and_citations() -> None:
 
 
 def test_submit_query_rejects_blank_question() -> None:
-    """A blank question should fail request validation with a 422."""
+    """A blank question should fail request validation with a 422.
+
+    The service dependency is overridden with a fake even though this
+    test only exercises validation, because FastAPI resolves endpoint
+    dependencies as part of handling the request. Without a real API
+    key configured (as in CI), constructing the real, agent-backed
+    QueryService would raise before validation could reject the
+    request.
+    """
+    app.dependency_overrides[get_query_service] = lambda: _FakeQueryService()
     client = TestClient(app)
 
     response = client.post("/api/query", json={"question": "   "})
+
+    app.dependency_overrides.clear()
 
     assert response.status_code == 422
 
