@@ -7,7 +7,7 @@ two trivial system endpoints (health, version) under the shared
 
 from fastapi import APIRouter
 
-from app.api import citations, evaluation, query, voice
+from app.api import auth, citations, evaluation, query, voice
 from app.core.config import get_settings
 from app.schemas.responses import HealthResponse, VersionResponse
 
@@ -44,3 +44,4 @@ api_router.include_router(query.router)
 api_router.include_router(voice.router)
 api_router.include_router(citations.router)
 api_router.include_router(evaluation.router)
+api_router.include_router(auth.router)  # ADD THIS LINE

@@ -1,10 +1,15 @@
-"""Tests for the AuthService (register, login, refresh)."""
+"""Tests for the AuthService (register, login, refresh) and the
+/auth/me and /auth/config HTTP endpoints."""
 
 import pytest
+from fastapi.testclient import TestClient
 
 from app.core.config import Settings
+from app.main import app
+from auth.dependencies import get_current_user
 from auth.service import AuthError, AuthService
 from database.base import Base
+from database.models import User
 from database.session import build_engine, build_session_factory
 
 
@@ -77,9 +82,7 @@ async def test_refresh_issues_new_token_pair(auth_service) -> None:
         "erin@example.com", "supersecret1", "Erin"
     )
 
-    user, new_access_token, new_refresh_token = await auth_service.refresh(
-        refresh_token
-    )
+    user, new_access_token, new_refresh_token = await auth_service.refresh(refresh_token)
 
     assert user.email == "erin@example.com"
     assert new_access_token
@@ -90,3 +93,49 @@ async def test_refresh_rejects_invalid_token(auth_service) -> None:
     """An invalid refresh token should raise AuthError."""
     with pytest.raises(AuthError):
         await auth_service.refresh("not-a-real-token")
+
+
+def test_get_auth_config_returns_google_client_id() -> None:
+    """GET /auth/config should return the configured Google client ID."""
+    client = TestClient(app)
+
+    response = client.get("/auth/config")
+
+    assert response.status_code == 200
+    assert "google_client_id" in response.json()
+
+
+def test_get_me_requires_authentication() -> None:
+    """GET /auth/me should return 401 without a bearer token."""
+    client = TestClient(app)
+
+    response = client.get("/auth/me")
+
+    assert response.status_code == 401
+
+
+def test_get_me_returns_profile_for_authenticated_user() -> None:
+    """GET /auth/me should return the current user's profile when authenticated."""
+    from datetime import datetime, timezone
+
+    fake_user = User(
+        email="profile-test@example.com",
+        full_name="Profile Tester",
+        provider="local",
+        created_at=datetime.now(timezone.utc)  # Add this
+    )
+
+    app.dependency_overrides[get_current_user] = lambda: fake_user
+    client = TestClient(app)
+
+    response = client.get("/auth/me")
+
+    app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["email"] == "profile-test@example.com"
+    assert data["full_name"] == "Profile Tester"
+    assert data["provider"] == "local"
+    assert "id" in data
+    assert "created_at" in data

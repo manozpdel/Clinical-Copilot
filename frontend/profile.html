@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile — Clinical Copilot</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">Clinical Copilot</div>
+    <div id="nav-unauthenticated" class="nav-section hidden">
+      <a href="login.html" class="nav-link">Log in</a>
+    </div>
+    <div id="nav-authenticated" class="nav-section hidden">
+      <a href="index.html" class="nav-link">Chat</a>
+      <div class="user-menu">
+        <button id="user-menu-button" class="user-menu-button" type="button">
+          <span id="user-avatar" class="user-avatar"></span>
+          <span id="user-name" class="user-name"></span>
+        </button>
+        <div id="user-dropdown" class="user-dropdown hidden">
+          <div class="dropdown-email" id="user-email"></div>
+          <a href="profile.html" class="dropdown-item">Profile</a>
+          <button id="logout-button" class="dropdown-item logout" type="button">Log out</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <div class="app-shell">
+    <header class="app-header">
+      <h1>Your Profile</h1>
+    </header>
+
+    <main class="app-main">
+      <div id="profile-loading" class="loading-indicator" style="justify-content:center;">
+        <div class="spinner-large"></div>
+      </div>
+
+      <section id="profile-card" class="profile-card hidden">
+        <div class="profile-field">
+          <span class="profile-field-label">Name</span>
+          <span id="profile-name" class="profile-field-value"></span>
+        </div>
+        <div class="profile-field">
+          <span class="profile-field-label">Email</span>
+          <span id="profile-email" class="profile-field-value"></span>
+        </div>
+        <div class="profile-field">
+          <span class="profile-field-label">Sign-in provider</span>
+          <span id="profile-provider" class="profile-field-value"></span>
+        </div>
+        <div class="profile-field">
+          <span class="profile-field-label">Member since</span>
+          <span id="profile-created" class="profile-field-value"></span>
+        </div>
+      </section>
+
+      <div id="profile-error" class="error-banner hidden" role="alert"></div>
+    </main>
+  </div>
+
+  <script type="module" src="js/router.js"></script>
+  <script type="module" src="js/guards.js"></script>
+  <script type="module" src="js/profile.js"></script>
+</body>
+</html>

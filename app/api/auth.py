@@ -1,24 +1,28 @@
-"""Public authentication endpoints.
+"""Public authentication endpoints, plus the authenticated profile lookup.
 
 This module is responsible ONLY for the `/auth/*` and `/login/google`
 routes. It contains no business logic; execution is delegated entirely
-to `AuthService`. These endpoints are intentionally NOT mounted under
-`/api`, matching the public route list for this milestone.
+to `AuthService`. `/auth/register`, `/auth/login`, `/auth/refresh`, and
+`/login/google` are public; `/auth/me` requires authentication via the
+existing `get_current_user` dependency.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings, get_settings
+from auth.dependencies import get_current_user
 from auth.schemas import (
     GoogleLoginRequest,
     RefreshRequest,
     TokenResponse,
     UserLoginRequest,
+    UserProfileResponse,
     UserRegisterRequest,
 )
 from auth.service import AuthError, AuthService
 from database.dependencies import get_db
+from database.models import User
 
 router = APIRouter(tags=["auth"])
 
@@ -64,9 +68,7 @@ async def register(
             request.email, request.password, request.full_name
         )
     except AuthError as error:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=str(error)
-        ) from error
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error)) from error
 
     return TokenResponse(access_token=access_token, refresh_token=refresh_token)
 
@@ -140,7 +142,9 @@ async def login_google(
     """Authenticate (or provision) a user via Google OAuth and issue tokens.
 
     Args:
-        request: The validated Google login request payload.
+        request: The validated Google login request payload, containing
+            an ID token obtained client-side via Google Identity
+            Services.
         service: The auth service, injected via dependency override in
             tests or the default database-backed service in
             production.
@@ -160,3 +164,44 @@ async def login_google(
         ) from error
 
     return TokenResponse(access_token=access_token, refresh_token=refresh_token)
+
+
+@router.get("/auth/me", response_model=UserProfileResponse)
+async def get_current_user_profile(
+    current_user: User = Depends(get_current_user),
+) -> UserProfileResponse:
+    """Return the authenticated user's profile.
+
+    Args:
+        current_user: The authenticated user, resolved from the bearer
+            JWT via the existing `get_current_user` dependency.
+
+    Returns:
+        UserProfileResponse: The user's id, email, name, provider, and
+            account creation timestamp.
+    """
+    return UserProfileResponse(
+        id=str(current_user.id),
+        email=current_user.email,
+        full_name=current_user.full_name,
+        provider=current_user.provider,
+        created_at=current_user.created_at,
+    )
+
+
+@router.get("/auth/config")
+async def get_auth_config(settings: Settings = Depends(get_settings)) -> dict[str, str]:
+    """Return public authentication configuration for the frontend.
+
+    Only non-secret values are exposed. The Google client ID is
+    considered public (it identifies the app to Google, it does not
+    authenticate anything on its own), unlike `google_client_secret`,
+    which is never exposed here or anywhere in the API.
+
+    Args:
+        settings: Active application settings.
+
+    Returns:
+        dict[str, str]: The public Google OAuth client ID.
+    """
+    return {"google_client_id": settings.google_client_id}
