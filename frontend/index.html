@@ -7,6 +7,29 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <nav class="navbar">
+    <div class="navbar-brand">Clinical Copilot</div>
+    <div id="nav-unauthenticated" class="nav-section hidden">
+      <a href="login.html" class="nav-link">Log in</a>
+    </div>
+    <div id="nav-authenticated" class="nav-section hidden">
+      <a href="index.html" class="nav-link">Chat</a>
+      <div class="user-menu">
+        <button id="user-menu-button" class="user-menu-button" type="button">
+          <span id="user-avatar" class="user-avatar"></span>
+          <span id="user-name" class="user-name"></span>
+        </button>
+        <div id="user-dropdown" class="user-dropdown hidden">
+          <div class="dropdown-email" id="user-email"></div>
+          <a href="profile.html" class="dropdown-item">Profile</a>
+          <button id="logout-button" class="dropdown-item logout" type="button">Log out</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div id="toast-container" class="toast-container"></div>
+
   <div class="app-shell">
     <header class="app-header">
       <h1>Clinical Copilot</h1>
@@ -62,6 +85,8 @@
     </main>
   </div>
 
-  <script src="app.js"></script>
+  <script type="module" src="js/router.js"></script>
+  <script type="module" src="js/guards.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>

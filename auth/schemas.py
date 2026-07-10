@@ -4,6 +4,7 @@ This module is responsible ONLY for validating authentication payloads
 and shaping authentication responses. It contains no routing, hashing,
 JWT, or OAuth logic.
 """
+from datetime import datetime
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -69,6 +70,24 @@ class UserResponse(BaseModel):
     email: str
     full_name: str | None
     provider: str
+
+
+class UserProfileResponse(BaseModel):
+    """Extended profile information for the authenticated user.
+
+    Attributes:
+        id: The user's unique identifier.
+        email: The user's email address.
+        full_name: The user's display name, when known.
+        provider: Authentication provider, e.g. "local" or "google".
+        created_at: Timestamp the account was created.
+    """
+
+    id: str
+    email: str
+    full_name: str | None
+    provider: str
+    created_at: datetime
 
 
 class TokenResponse(BaseModel):

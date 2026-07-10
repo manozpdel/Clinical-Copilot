@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from app.api import health
+from app.api import auth, health
 from app.api.router import api_router
 from app.core.config import get_settings
 from app.core.constants import ROOT_MESSAGE
@@ -45,6 +45,7 @@ app = FastAPI(
 
 app.include_router(health.router)
 app.include_router(api_router)
+app.include_router(auth.router)
 
 if settings.enable_frontend and settings.static_files_path.exists():
     app.mount(

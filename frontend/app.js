@@ -1,9 +1,10 @@
-const API_BASE = "/api";
+import { apiFetch } from "./js/api.js";
+import { requireAuth } from "./js/guards.js";
 
-const tabButtons = document.querySelectorAll(".tab-button");
-const tabContents = document.querySelectorAll(".tab-content");
 const textForm = document.getElementById("text-tab");
 const voiceForm = document.getElementById("voice-tab");
+const tabButtons = document.querySelectorAll(".tab-button");
+const tabContents = document.querySelectorAll(".tab-content");
 const questionInput = document.getElementById("question-input");
 const audioInput = document.getElementById("audio-input");
 const loadingIndicator = document.getElementById("loading-indicator");
@@ -16,6 +17,8 @@ const citationsPanel = document.getElementById("citations-panel");
 const citationsList = document.getElementById("citations-list");
 const evaluationPanel = document.getElementById("evaluation-panel");
 const evaluationList = document.getElementById("evaluation-list");
+
+requireAuth();
 
 tabButtons.forEach((button) => {
   button.addEventListener("click", () => {
@@ -120,7 +123,7 @@ textForm.addEventListener("submit", async (event) => {
   setLoading(true);
 
   try {
-    const response = await fetch(`${API_BASE}/query`, {
+    const response = await apiFetch("/query", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question }),
@@ -150,7 +153,7 @@ voiceForm.addEventListener("submit", async (event) => {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await fetch(`${API_BASE}/voice`, {
+    const response = await apiFetch("/voice", {
       method: "POST",
       body: formData,
     });
@@ -162,10 +165,3 @@ voiceForm.addEventListener("submit", async (event) => {
     setLoading(false);
   }
 });
-```
-
-=================================================
-FILE: frontend/assets/.gitkeep
-=================================================
-
-```
