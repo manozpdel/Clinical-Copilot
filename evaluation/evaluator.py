@@ -82,15 +82,11 @@ def evaluate_single_item(
     Returns:
         EvaluationResult: The computed metrics for this QA pair.
     """
-    result = generate_answer(
-        item.question, client=generation_client, settings=settings
-    )
+    result = generate_answer(item.question, client=generation_client, settings=settings)
 
     retrieved_chunk_ids = [chunk.chunk_id for chunk in result.context_chunks]
     recall = recall_at_k(retrieved_chunk_ids, item.relevant_chunk_id)
-    reciprocal_rank = mean_reciprocal_rank(
-        retrieved_chunk_ids, item.relevant_chunk_id
-    )
+    reciprocal_rank = mean_reciprocal_rank(retrieved_chunk_ids, item.relevant_chunk_id)
 
     context = build_context(result.context_chunks)
     faithfulness = score_faithfulness(context, result.answer, faithfulness_client)

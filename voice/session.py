@@ -36,9 +36,7 @@ class SessionManager:
             str: The identifier of the newly created session.
         """
         resolved_id = session_id or uuid.uuid4().hex
-        self._sessions[resolved_id] = ConversationMemory(
-            max_history=self._max_history
-        )
+        self._sessions[resolved_id] = ConversationMemory(max_history=self._max_history)
         return resolved_id
 
     def get_memory(self, session_id: str) -> ConversationMemory:

@@ -50,9 +50,7 @@ def generate_and_save_patients(settings: Settings) -> list[Path]:
     return save_patient_records(records, settings.data_raw_dir)
 
 
-def build_chunks_from_files(
-    file_paths: list[Path], settings: Settings
-) -> list[Chunk]:
+def build_chunks_from_files(file_paths: list[Path], settings: Settings) -> list[Chunk]:
     """Read patient files and split each into metadata-tagged chunks.
 
     Args:

@@ -78,9 +78,7 @@ def _extract_section(text: str, section_header: str) -> str | None:
     return remainder[:end].strip()
 
 
-def _find_chunk_for_section(
-    chunks: list[Chunk], section_header: str
-) -> Chunk | None:
+def _find_chunk_for_section(chunks: list[Chunk], section_header: str) -> Chunk | None:
     """Find the first chunk whose text contains a given section header.
 
     Args:

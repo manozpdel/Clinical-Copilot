@@ -100,6 +100,19 @@ class Settings(BaseSettings):
             assets served alongside the API.
         enable_frontend: Whether the static frontend is mounted and
             served by the application.
+        database_url: Async SQLAlchemy connection string for the
+            application's PostgreSQL database.
+        jwt_secret_key: Secret key used to sign and verify JWTs. Must be
+            set via environment variable in any non-local environment.
+        jwt_algorithm: Signing algorithm used for JWTs.
+        access_token_expire_minutes: Lifetime, in minutes, of issued
+            access tokens.
+        refresh_token_expire_days: Lifetime, in days, of issued refresh
+            tokens.
+        google_client_id: OAuth client ID used to validate Google ID
+            tokens.
+        google_client_secret: OAuth client secret associated with
+            `google_client_id`.
     """
 
     app_name: str = "Clinical Copilot API"
@@ -161,6 +174,16 @@ class Settings(BaseSettings):
     max_upload_size: int = 10_000_000
     static_files_path: Path = Path("frontend")
     enable_frontend: bool = True
+
+    database_url: str = (
+        "postgresql+asyncpg://postgres:postgres@localhost:5432/clinical_copilot"
+    )
+    jwt_secret_key: str = ""
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 30
+    refresh_token_expire_days: int = 7
+    google_client_id: str = ""
+    google_client_secret: str = ""
 
     model_config = SettingsConfigDict(
         env_file=".env",

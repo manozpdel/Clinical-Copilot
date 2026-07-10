@@ -68,7 +68,9 @@ class ConversationMemory:
             ConversationTurn | None: The most recent matching turn, or
                 None if no turns are stored (or none match `role`).
         """
-        candidates = self._turns if role is None else [
-            turn for turn in self._turns if turn.role == role
-        ]
+        candidates = (
+            self._turns
+            if role is None
+            else [turn for turn in self._turns if turn.role == role]
+        )
         return candidates[-1] if candidates else None

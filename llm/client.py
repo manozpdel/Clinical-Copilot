@@ -81,9 +81,7 @@ class GroqClient:
         """
         return self._model
 
-    def _compute_backoff_delay(
-        self, attempt: int, retry_after: float | None
-    ) -> float:
+    def _compute_backoff_delay(self, attempt: int, retry_after: float | None) -> float:
         """Compute the delay to wait before the next retry attempt.
 
         Args:

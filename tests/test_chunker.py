@@ -101,14 +101,8 @@ def test_chunk_document_keeps_each_section_in_one_chunk() -> None:
 
 def test_chunk_document_splits_oversized_section(monkeypatch=None) -> None:
     """A section exceeding chunk_size should be split into sub-chunks."""
-    long_medication_list = "\n".join(
-        f"- Medication{i} 10mg daily" for i in range(40)
-    )
-    text = (
-        "Patient ID: patient_009\n\n"
-        "Medications:\n"
-        f"{long_medication_list}\n"
-    )
+    long_medication_list = "\n".join(f"- Medication{i} 10mg daily" for i in range(40))
+    text = f"Patient ID: patient_009\n\nMedications:\n{long_medication_list}\n"
 
     chunks = chunk_document(
         text=text,

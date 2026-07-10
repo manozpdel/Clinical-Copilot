@@ -20,22 +20,39 @@ from tools.validator import (
 
 logger = get_logger(__name__)
 
-_PATIENT_ID_PATTERN = re.compile(
-    r"\bP(?:ATIENT)?[\s_-]*0*(\d{1,4})\b", re.IGNORECASE
-)
+_PATIENT_ID_PATTERN = re.compile(r"\bP(?:ATIENT)?[\s_-]*0*(\d{1,4})\b", re.IGNORECASE)
 
 _EHR_KEYWORDS: tuple[str, ...] = (
-    "medication", "medications", "allergy", "allergies", "medical history",
-    "demographic", "demographics", "lab", "labs",
+    "medication",
+    "medications",
+    "allergy",
+    "allergies",
+    "medical history",
+    "demographic",
+    "demographics",
+    "lab",
+    "labs",
 )
 
 _NOTES_KEYWORDS: tuple[str, ...] = (
-    "note", "notes", "visit", "assessment", "physician", "chief complaint",
+    "note",
+    "notes",
+    "visit",
+    "assessment",
+    "physician",
+    "chief complaint",
 )
 
 _WEARABLES_KEYWORDS: tuple[str, ...] = (
-    "heart rate", "blood pressure", "sleep", "activity", "steps",
-    "wearable", "wearables", "trend", "trends",
+    "heart rate",
+    "blood pressure",
+    "sleep",
+    "activity",
+    "steps",
+    "wearable",
+    "wearables",
+    "trend",
+    "trends",
 )
 
 
