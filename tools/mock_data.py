@@ -15,39 +15,93 @@ _PATIENT_COUNT = 20
 _SEED = 42
 
 _FIRST_NAMES: tuple[str, ...] = (
-    "Alice", "Brian", "Carla", "Derek", "Elena", "Farid", "Grace", "Hassan",
-    "Isla", "Jamal", "Kira", "Liam", "Maya", "Noah", "Omar", "Priya",
-    "Quinn", "Rosa", "Sam", "Tara",
+    "Alice",
+    "Brian",
+    "Carla",
+    "Derek",
+    "Elena",
+    "Farid",
+    "Grace",
+    "Hassan",
+    "Isla",
+    "Jamal",
+    "Kira",
+    "Liam",
+    "Maya",
+    "Noah",
+    "Omar",
+    "Priya",
+    "Quinn",
+    "Rosa",
+    "Sam",
+    "Tara",
 )
 
 _LAST_NAMES: tuple[str, ...] = (
-    "Nguyen", "Patel", "Kowalski", "Silva", "Okafor", "Muller", "Rossi",
-    "Kim", "Haddad", "Andersson", "Costa", "Novak", "Chen", "Ibrahim",
-    "Larsen", "Fischer", "Suzuki", "Diallo", "Moreno", "Wallace",
+    "Nguyen",
+    "Patel",
+    "Kowalski",
+    "Silva",
+    "Okafor",
+    "Muller",
+    "Rossi",
+    "Kim",
+    "Haddad",
+    "Andersson",
+    "Costa",
+    "Novak",
+    "Chen",
+    "Ibrahim",
+    "Larsen",
+    "Fischer",
+    "Suzuki",
+    "Diallo",
+    "Moreno",
+    "Wallace",
 )
 
 _MEDICAL_HISTORY_POOL: tuple[str, ...] = (
-    "Hypertension", "Type 2 Diabetes Mellitus", "Hyperlipidemia", "Asthma",
-    "Osteoarthritis", "Hypothyroidism", "Coronary Artery Disease",
-    "Chronic Kidney Disease, Stage 2", "GERD", "Generalized Anxiety Disorder",
+    "Hypertension",
+    "Type 2 Diabetes Mellitus",
+    "Hyperlipidemia",
+    "Asthma",
+    "Osteoarthritis",
+    "Hypothyroidism",
+    "Coronary Artery Disease",
+    "Chronic Kidney Disease, Stage 2",
+    "GERD",
+    "Generalized Anxiety Disorder",
 )
 
 _MEDICATIONS_POOL: tuple[str, ...] = (
-    "Lisinopril 10mg daily", "Metformin 500mg twice daily",
-    "Atorvastatin 20mg nightly", "Albuterol inhaler as needed",
-    "Levothyroxine 75mcg daily", "Omeprazole 20mg daily",
-    "Amlodipine 5mg daily", "Sertraline 50mg daily",
+    "Lisinopril 10mg daily",
+    "Metformin 500mg twice daily",
+    "Atorvastatin 20mg nightly",
+    "Albuterol inhaler as needed",
+    "Levothyroxine 75mcg daily",
+    "Omeprazole 20mg daily",
+    "Amlodipine 5mg daily",
+    "Sertraline 50mg daily",
 )
 
 _ALLERGIES_POOL: tuple[str, ...] = (
-    "Penicillin", "Sulfa drugs", "Latex", "Peanuts", "Shellfish",
+    "Penicillin",
+    "Sulfa drugs",
+    "Latex",
+    "Peanuts",
+    "Shellfish",
     "No known drug allergies",
 )
 
 _CHIEF_COMPLAINTS: tuple[str, ...] = (
-    "Chest pain", "Shortness of breath", "Persistent cough",
-    "Abdominal pain", "Lower back pain", "Headache and dizziness",
-    "Fatigue and generalized weakness", "Joint pain and swelling",
+    "Chest pain",
+    "Shortness of breath",
+    "Persistent cough",
+    "Abdominal pain",
+    "Lower back pain",
+    "Headache and dizziness",
+    "Fatigue and generalized weakness",
+    "Joint pain and swelling",
 )
 
 

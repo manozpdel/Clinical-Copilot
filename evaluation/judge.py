@@ -67,9 +67,7 @@ def score_faithfulness(context: str, answer: str, client: GroqClient) -> float:
     return _parse_score(raw_response)
 
 
-def score_answer_relevance(
-    question: str, answer: str, client: GroqClient
-) -> float:
+def score_answer_relevance(question: str, answer: str, client: GroqClient) -> float:
     """Score how relevant an answer is to its originating question.
 
     Args:

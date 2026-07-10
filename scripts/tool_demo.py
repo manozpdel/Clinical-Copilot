@@ -79,9 +79,7 @@ def main() -> None:
         print("Output\n")
         _print_data(result.output.data)
 
-    logger.info(
-        "tool_demo_finished", question=question, selected_tool=result.tool_name
-    )
+    logger.info("tool_demo_finished", question=question, selected_tool=result.tool_name)
 
 
 if __name__ == "__main__":

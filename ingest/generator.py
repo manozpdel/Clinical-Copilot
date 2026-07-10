@@ -257,8 +257,7 @@ def generate_patient_records(
     """
     rng = random.Random(seed)
     return [
-        _generate_single_patient_record(number, rng)
-        for number in range(1, count + 1)
+        _generate_single_patient_record(number, rng) for number in range(1, count + 1)
     ]
 
 
@@ -332,9 +331,7 @@ def format_patient_record(record: PatientRecord) -> str:
     )
 
 
-def save_patient_records(
-    records: list[PatientRecord], output_dir: Path
-) -> list[Path]:
+def save_patient_records(records: list[PatientRecord], output_dir: Path) -> list[Path]:
     """Write patient records to disk as individual text files.
 
     Args:

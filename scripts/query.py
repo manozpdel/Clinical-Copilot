@@ -24,9 +24,7 @@ def main() -> None:
     print("\nTop Results\n")
     print(format_results(response.results))
 
-    logger.info(
-        "cli_query_finished", query=query, result_count=len(response.results)
-    )
+    logger.info("cli_query_finished", query=query, result_count=len(response.results))
 
 
 if __name__ == "__main__":

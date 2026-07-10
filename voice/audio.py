@@ -19,9 +19,7 @@ class AudioValidationError(Exception):
     """Raised when an audio file fails validation."""
 
 
-def validate_audio_file(
-    path: Path, supported_formats: tuple[str, ...]
-) -> bytes:
+def validate_audio_file(path: Path, supported_formats: tuple[str, ...]) -> bytes:
     """Validate an audio file's existence, format, and basic readability.
 
     Args:

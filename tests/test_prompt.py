@@ -38,9 +38,7 @@ def test_build_context_handles_empty_chunks() -> None:
 
 def test_build_prompt_instructs_no_hallucination_and_no_inline_citations() -> None:
     """The system prompt should forbid hallucination and inline citations."""
-    prompt = build_prompt(
-        "What medications is the patient taking?", [_sample_chunk()]
-    )
+    prompt = build_prompt("What medications is the patient taking?", [_sample_chunk()])
 
     assert "hallucinate" in prompt.system_prompt.lower()
     assert "inline citations" in prompt.system_prompt.lower()

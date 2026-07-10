@@ -9,9 +9,7 @@ from app.main import app
 async def test_read_root() -> None:
     """The root endpoint should return the expected welcome message."""
     transport = ASGITransport(app=app)
-    async with AsyncClient(
-        transport=transport, base_url="http://test"
-    ) as client:
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.get("/")
 
     assert response.status_code == 200
@@ -21,9 +19,7 @@ async def test_read_root() -> None:
 async def test_health_check() -> None:
     """The health endpoint should return a healthy status."""
     transport = ASGITransport(app=app)
-    async with AsyncClient(
-        transport=transport, base_url="http://test"
-    ) as client:
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.get("/health")
 
     assert response.status_code == 200

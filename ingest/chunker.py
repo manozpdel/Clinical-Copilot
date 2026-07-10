@@ -94,9 +94,7 @@ def _split_into_sections(text: str) -> list[tuple[str, str]]:
             demographic header, labeled "Header". Sections not present
             in the document are skipped.
     """
-    present_headers = [
-        header for header in _SECTION_HEADERS if header in text
-    ]
+    present_headers = [header for header in _SECTION_HEADERS if header in text]
 
     if not present_headers:
         return [("Header", text.strip())] if text.strip() else []
