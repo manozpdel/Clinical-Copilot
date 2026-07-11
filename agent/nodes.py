@@ -5,9 +5,11 @@ in `planner.py`, `retriever_node.py`, `generator_node.py`,
 `evaluator_node.py`, and the `tools` package into LangGraph-compatible
 node callables that accept and return `AgentState`. It contains no
 planning, retrieval, generation, evaluation, or tool-execution logic
-of its own.
+of its own. Each node is timed and traced via `observability`, without
+altering any node's business logic.
 """
 
+import time
 from collections.abc import Callable
 from typing import Any
 
@@ -21,6 +23,8 @@ from app.core.logging import get_logger
 from ingest.embeddings import EmbeddingModel
 from llm.client import GroqClient
 from llm.prompts import build_context
+from observability.metrics import record_node_duration
+from observability.tracing import trace_span
 from rag.models import RetrievedChunk
 from rag.retriever import ChromaRetriever
 from tools.models import ToolName
@@ -40,11 +44,14 @@ def make_planner_node() -> NodeFn:
     """
 
     def node(state: AgentState) -> dict[str, Any]:
-        planned_state = plan(
-            question=state["question"],
-            conversation_id=state.get("conversation_id") or None,
-            request_id=state.get("request_id") or None,
-        )
+        start = time.monotonic()
+        with trace_span("agent.planner"):
+            planned_state = plan(
+                question=state["question"],
+                conversation_id=state.get("conversation_id") or None,
+                request_id=state.get("request_id") or None,
+            )
+        record_node_duration("planner", time.monotonic() - start)
         logger.info("planner_node_complete", request_id=planned_state["request_id"])
         return dict(planned_state)
 
@@ -96,7 +103,11 @@ def make_tool_router_node(tool_router: ToolRouter) -> NodeFn:
     """
 
     def node(state: AgentState) -> dict[str, Any]:
-        result = tool_router.route(state["question"])
+        start = time.monotonic()
+        with trace_span("agent.tool_router"):
+            result = tool_router.route(state["question"])
+        record_node_duration("tool_router", time.monotonic() - start)
+
         metadata = {
             **state.get("metadata", {}),
             "stage": "routed",
@@ -152,12 +163,16 @@ def make_retriever_node(
     """
 
     def node(state: AgentState) -> dict[str, Any]:
-        chunks, context = retrieve_context(
-            question=state["question"],
-            settings=settings,
-            embedder=embedder,
-            retriever=retriever,
-        )
+        start = time.monotonic()
+        with trace_span("agent.retriever"):
+            chunks, context = retrieve_context(
+                question=state["question"],
+                settings=settings,
+                embedder=embedder,
+                retriever=retriever,
+            )
+        record_node_duration("retriever", time.monotonic() - start)
+
         metadata = {**state.get("metadata", {}), "stage": "retrieved"}
         logger.info("retriever_node_complete", chunk_count=len(chunks))
         return {
@@ -181,11 +196,15 @@ def make_generator_node(client: GroqClient) -> NodeFn:
     """
 
     def node(state: AgentState) -> dict[str, Any]:
-        answer, citations, prompt = generate_response(
-            question=state["question"],
-            chunks=state.get("retrieved_chunks", []),
-            client=client,
-        )
+        start = time.monotonic()
+        with trace_span("agent.generator"):
+            answer, citations, prompt = generate_response(
+                question=state["question"],
+                chunks=state.get("retrieved_chunks", []),
+                client=client,
+            )
+        record_node_duration("generator", time.monotonic() - start)
+
         metadata = {**state.get("metadata", {}), "stage": "generated"}
         logger.info("generator_node_complete", citation_count=len(citations))
         return {
@@ -212,13 +231,17 @@ def make_evaluator_node(client: GroqClient, enable_evaluation: bool) -> NodeFn:
     """
 
     def node(state: AgentState) -> dict[str, Any]:
-        evaluation = evaluate_response(
-            context=state.get("formatted_context", ""),
-            answer=state.get("answer", ""),
-            citations=state.get("citations", []),
-            client=client,
-            enable_evaluation=enable_evaluation,
-        )
+        start = time.monotonic()
+        with trace_span("agent.evaluator"):
+            evaluation = evaluate_response(
+                context=state.get("formatted_context", ""),
+                answer=state.get("answer", ""),
+                citations=state.get("citations", []),
+                client=client,
+                enable_evaluation=enable_evaluation,
+            )
+        record_node_duration("evaluator", time.monotonic() - start)
+
         metadata = {**state.get("metadata", {}), "stage": "evaluated"}
         logger.info("evaluator_node_complete", evaluation=evaluation)
         return {"evaluation": evaluation, "metadata": metadata}

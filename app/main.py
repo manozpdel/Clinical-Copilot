@@ -3,9 +3,10 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
@@ -16,6 +17,13 @@ from app.api.router import api_router
 from app.core.config import get_settings
 from app.core.constants import ROOT_MESSAGE
 from app.core.logging import configure_logging, get_logger
+from auth.dependencies import get_current_user
+from database.models import User
+from database.session import engine
+from observability.health import HealthService
+from observability.middleware import ObservabilityMiddleware
+from observability.models import HealthSummary
+from observability.telemetry import configure_observability
 from security.headers import SecurityHeadersMiddleware
 from security.limiter import limiter, rate_limit_exceeded_handler
 from security.middleware import (
@@ -56,19 +64,17 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# ---------------------------------------------------------------------------
-# Middleware stack
-# ---------------------------------------------------------------------------
-# NOTE: Middleware is applied in REVERSE order – the last middleware added
-# wraps the outermost layer and therefore runs first on the way in and last
-# on the way out. SecurityHeadersMiddleware is added last so it can
-# intercept EVERY response, including those served by StaticFiles.
-# ---------------------------------------------------------------------------
+configure_observability(settings, app=app, engine=engine)
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
-
 app.add_middleware(SlowAPIMiddleware)
+
+app.add_middleware(ObservabilityMiddleware, settings=settings)
+
+if settings.enable_security_headers:
+    app.add_middleware(SecurityHeadersMiddleware, settings=settings)
+
 app.add_middleware(RequestTimingMiddleware)
 app.add_middleware(RequestSizeLimitMiddleware, settings=settings)
 app.add_middleware(AuthContextMiddleware, settings=settings)
@@ -77,7 +83,6 @@ app.add_middleware(RequestIDMiddleware)
 app.add_middleware(
     TrustedHostMiddleware, allowed_hosts=list(settings.trusted_hosts)
 )
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=list(settings.trusted_hosts),
@@ -86,22 +91,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Security headers middleware MUST be added LAST so it wraps all other
-# middleware and static file handlers, guaranteeing headers are attached
-# to every response.
-if settings.enable_security_headers:
-    app.add_middleware(SecurityHeadersMiddleware, settings=settings)
-
-# ---------------------------------------------------------------------------
-# Routers
-# ---------------------------------------------------------------------------
 app.include_router(health.router)
 app.include_router(auth_router)
 app.include_router(api_router)
 
-# ---------------------------------------------------------------------------
-# Static files (frontend)
-# ---------------------------------------------------------------------------
 if settings.enable_frontend and settings.static_files_path.exists():
     app.mount(
         "/app",
@@ -118,3 +111,40 @@ async def read_root() -> dict[str, str]:
         dict[str, str]: A mapping containing the API's welcome message.
     """
     return {"message": ROOT_MESSAGE}
+
+
+@app.get("/metrics")
+async def get_metrics() -> Response:
+    """Expose Prometheus metrics in text exposition format.
+
+    Returns:
+        Response: The current metrics snapshot.
+
+    Raises:
+        HTTPException: With status 404 if metrics are disabled.
+    """
+    if not settings.prometheus_enabled:
+        raise HTTPException(status_code=404, detail="Metrics endpoint disabled.")
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
+@app.get("/health/detailed", response_model=HealthSummary)
+async def get_detailed_health(
+    current_user: User = Depends(get_current_user),
+) -> HealthSummary:
+    """Return a detailed health summary of every application dependency.
+
+    Requires authentication, since detailed health information (disk,
+    memory, and dependency status) is more sensitive than the basic
+    liveness check at `/health`.
+
+    Args:
+        current_user: The authenticated user, resolved from the bearer
+            JWT.
+
+    Returns:
+        HealthSummary: The aggregated health of the database, Chroma,
+            Groq, LangSmith, disk, and memory.
+    """
+    service = HealthService(settings)
+    return await service.get_summary()

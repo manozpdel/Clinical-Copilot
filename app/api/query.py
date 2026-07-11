@@ -3,8 +3,9 @@
 This module is responsible ONLY for the `/api/query` route. Agent
 execution is delegated to `QueryService`; rate limiting is delegated to
 `security.limiter`; quota enforcement to `security.quota`; usage/cost
-calculation to `security.budget`; and persistence to `database.crud`.
-No business logic or raw SQL lives here.
+calculation to `security.budget`; persistence to `database.crud`; and
+observability (log context, token metrics) to `observability`. No
+business logic or raw SQL lives here.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -19,6 +20,8 @@ from auth.dependencies import get_current_user
 from database.crud import create_usage_log, record_query_turn
 from database.dependencies import get_db
 from database.models import User
+from observability.logging import bind_request_context
+from observability.metrics import record_llm_tokens
 from security.budget import estimate_usage
 from security.limiter import limiter, rate_limit_string
 from security.quota import QuotaExceededError, check_quota_before_request
@@ -80,6 +83,10 @@ async def submit_query(
         HTTPException: With status 429 if the user's quota has been
             exceeded.
     """
+    bind_request_context(
+        user_id=str(current_user.id), endpoint="/api/query", component="api"
+    )
+
     try:
         await check_quota_before_request(db, current_user.id, settings)
     except QuotaExceededError as error:
@@ -96,6 +103,7 @@ async def submit_query(
         prompt_text=payload.question,
         completion_text=result["answer"],
     )
+    record_llm_tokens(settings.generation_model, usage.prompt_tokens, usage.completion_tokens)
 
     conversation = await record_query_turn(
         db,
