@@ -6,6 +6,8 @@ handling. It contains no prompt construction, retrieval, or citation
 logic. A single reusable GroqClient can be instantiated multiple times
 with different API keys/models to give each pipeline role (generation,
 faithfulness judging, relevance judging) its own independent quota.
+LLM call latency is recorded via `observability.metrics` and traced via
+`observability.tracing`, without altering the client's behavior.
 """
 
 import random
@@ -17,6 +19,8 @@ from langchain_groq import ChatGroq
 from app.core.config import Settings
 from app.core.logging import get_logger
 from llm.rate_limiter import RateLimiter
+from observability.metrics import record_llm_latency
+from observability.tracing import trace_span
 
 logger = get_logger(__name__)
 
@@ -81,7 +85,9 @@ class GroqClient:
         """
         return self._model
 
-    def _compute_backoff_delay(self, attempt: int, retry_after: float | None) -> float:
+    def _compute_backoff_delay(
+        self, attempt: int, retry_after: float | None
+    ) -> float:
         """Compute the delay to wait before the next retry attempt.
 
         Args:
@@ -121,9 +127,12 @@ class GroqClient:
                 logger.info(
                     "llm_generation_started", model=self._model, attempt=attempt
                 )
-                response = self._llm.invoke(
-                    [("system", system_prompt), ("human", user_prompt)]
-                )
+                call_start = time.monotonic()
+                with trace_span("llm.generate", model=self._model, attempt=attempt):
+                    response = self._llm.invoke(
+                        [("system", system_prompt), ("human", user_prompt)]
+                    )
+                record_llm_latency(self._model, time.monotonic() - call_start)
                 logger.info("llm_generation_completed", model=self._model)
                 return str(response.content)
 

@@ -5,6 +5,8 @@ via a transcription provider. It contains no audio validation, memory,
 session, or pipeline orchestration logic. The abstract `Transcriber`
 interface keeps the provider swappable; `GroqWhisperTranscriber` is the
 current implementation, backed by Groq's hosted Whisper API.
+Transcription latency is recorded via `observability.metrics` and
+traced via `observability.tracing`, without altering behavior.
 """
 
 import random
@@ -16,6 +18,8 @@ from groq import Groq
 
 from app.core.config import Settings
 from app.core.logging import get_logger
+from observability.metrics import record_voice_transcription_latency
+from observability.tracing import trace_span
 from voice.models import TranscriptionResult
 
 logger = get_logger(__name__)
@@ -100,12 +104,17 @@ class GroqWhisperTranscriber(Transcriber):
 
         for attempt in range(max_attempts):
             try:
-                logger.info("transcription_started", model=self._model, attempt=attempt)
-                response = self._client.audio.transcriptions.create(
-                    file=(filename, audio_bytes),
-                    model=self._model,
-                    response_format="verbose_json",
+                logger.info(
+                    "transcription_started", model=self._model, attempt=attempt
                 )
+                call_start = time.monotonic()
+                with trace_span("voice.transcribe", model=self._model, attempt=attempt):
+                    response = self._client.audio.transcriptions.create(
+                        file=(filename, audio_bytes),
+                        model=self._model,
+                        response_format="verbose_json",
+                    )
+                record_voice_transcription_latency(time.monotonic() - call_start)
                 logger.info("transcription_completed", model=self._model)
                 return TranscriptionResult(
                     text=response.text.strip(),
@@ -128,7 +137,9 @@ class GroqWhisperTranscriber(Transcriber):
                 )
                 time.sleep(delay)
 
-        logger.error("transcription_failed", model=self._model, attempts=max_attempts)
+        logger.error(
+            "transcription_failed", model=self._model, attempts=max_attempts
+        )
         raise TranscriptionError(
             f"Transcription failed after {max_attempts} attempt(s)."
         ) from last_error

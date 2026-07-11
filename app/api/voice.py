@@ -3,8 +3,9 @@
 This module is responsible ONLY for the `/api/voice` route. Audio
 transcription and agent execution are delegated to `VoiceService`; rate
 limiting to `security.limiter`; quota enforcement to `security.quota`;
-usage/cost calculation to `security.budget`; and persistence to
-`database.crud`. No business logic or raw SQL lives here.
+usage/cost calculation to `security.budget`; persistence to
+`database.crud`; and observability (log context, token metrics) to
+`observability`. No business logic or raw SQL lives here.
 """
 
 import time
@@ -20,6 +21,8 @@ from auth.dependencies import get_current_user
 from database.crud import create_usage_log, get_or_create_conversation, record_query_turn
 from database.dependencies import get_db
 from database.models import User
+from observability.logging import bind_request_context
+from observability.metrics import record_llm_tokens
 from security.budget import estimate_usage
 from security.limiter import limiter, rate_limit_string
 from security.quota import QuotaExceededError, check_quota_before_request
@@ -94,6 +97,10 @@ async def submit_voice(
             exceeded, or 422 if audio validation or transcription
             fails.
     """
+    bind_request_context(
+        user_id=str(current_user.id), endpoint="/api/voice", component="api"
+    )
+
     try:
         await check_quota_before_request(db, current_user.id, settings)
     except QuotaExceededError as error:
@@ -126,6 +133,7 @@ async def submit_voice(
         prompt_text=result["transcript"],
         completion_text=result["answer"],
     )
+    record_llm_tokens(settings.generation_model, usage.prompt_tokens, usage.completion_tokens)
 
     conversation = await get_or_create_conversation(
         db, current_user.id, result["conversation_id"]

@@ -2,14 +2,18 @@
 
 This module is responsible ONLY for loading and querying the existing
 persistent Chroma collection. It contains no business logic, scoring,
-or formatting.
+or formatting. Query latency is recorded via `observability.metrics`
+and traced via `observability.tracing`, without altering behavior.
 """
 
+import time
 from typing import Any
 
 import chromadb
 
 from app.core.config import Settings
+from observability.metrics import record_retriever_latency
+from observability.tracing import trace_span
 
 
 class ChromaRetriever:
@@ -56,7 +60,11 @@ class ChromaRetriever:
             dict[str, Any]: Raw Chroma query response containing ids,
                 documents, metadatas, and distances.
         """
-        return self._collection.query(
-            query_embeddings=[query_embedding],
-            n_results=top_k,
-        )
+        start = time.monotonic()
+        with trace_span("retriever.query", collection=self.collection_name, top_k=top_k):
+            result = self._collection.query(
+                query_embeddings=[query_embedding],
+                n_results=top_k,
+            )
+        record_retriever_latency(time.monotonic() - start)
+        return result

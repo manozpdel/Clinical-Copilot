@@ -3,56 +3,40 @@
 This module is responsible ONLY for selecting which tool (if any)
 applies to a question, extracting the patient ID, and orchestrating
 validated, retried execution through the registry. It contains no
-tool implementation logic of its own.
+tool implementation logic of its own. Tool execution latency is
+recorded via `observability.metrics` and traced via
+`observability.tracing`, without altering behavior.
 """
 
 import re
+import time
 
 from app.core.logging import get_logger
+from observability.metrics import record_tool_latency
+from observability.tracing import trace_span
 from tools.models import ToolExecutionResult, ToolInput, ToolName
 from tools.registry import ToolRegistry
 from tools.retry import RetryExhaustedError, retry_call
-from tools.validator import (
-    ToolValidationError,
-    validate_tool_input,
-    validate_tool_output,
-)
+from tools.validator import ToolValidationError, validate_tool_input, validate_tool_output
 
 logger = get_logger(__name__)
 
-_PATIENT_ID_PATTERN = re.compile(r"\bP(?:ATIENT)?[\s_-]*0*(\d{1,4})\b", re.IGNORECASE)
+_PATIENT_ID_PATTERN = re.compile(
+    r"\bP(?:ATIENT)?[\s_-]*0*(\d{1,4})\b", re.IGNORECASE
+)
 
 _EHR_KEYWORDS: tuple[str, ...] = (
-    "medication",
-    "medications",
-    "allergy",
-    "allergies",
-    "medical history",
-    "demographic",
-    "demographics",
-    "lab",
-    "labs",
+    "medication", "medications", "allergy", "allergies", "medical history",
+    "demographic", "demographics", "lab", "labs",
 )
 
 _NOTES_KEYWORDS: tuple[str, ...] = (
-    "note",
-    "notes",
-    "visit",
-    "assessment",
-    "physician",
-    "chief complaint",
+    "note", "notes", "visit", "assessment", "physician", "chief complaint",
 )
 
 _WEARABLES_KEYWORDS: tuple[str, ...] = (
-    "heart rate",
-    "blood pressure",
-    "sleep",
-    "activity",
-    "steps",
-    "wearable",
-    "wearables",
-    "trend",
-    "trends",
+    "heart rate", "blood pressure", "sleep", "activity", "steps",
+    "wearable", "wearables", "trend", "trends",
 )
 
 
@@ -86,12 +70,6 @@ class ToolRouter:
 
     def extract_patient_id(self, question: str) -> str | None:
         """Extract and normalize a mock patient ID from a question.
-
-        Accepts flexible phrasing such as "P0005", "p5", "patient 5",
-        "patient_005", or "Patient005", and normalizes any match to the
-        canonical zero-padded "P####" format used by the mock tool
-        population (distinct from the "patient_###" IDs used by the
-        Part 2/3 RAG corpus).
 
         Args:
             question: The user's natural language question.
@@ -151,6 +129,7 @@ class ToolRouter:
                 tool_name=tool_name, patient_id=patient_id, success=True
             )
 
+        start = time.monotonic()
         try:
             tool = self._registry.get_tool(tool_name)
             tool_input = ToolInput(patient_id=patient_id or "", query=question)
@@ -158,16 +137,18 @@ class ToolRouter:
             if self._enable_validation:
                 validate_tool_input(tool_input, self._known_patient_ids)
 
-            output = retry_call(
-                lambda: tool.execute(tool_input),
-                max_attempts=self._max_retries,
-                delay_seconds=self._retry_delay,
-                retry_exceptions=(ConnectionError, TimeoutError),
-            )
+            with trace_span("tool.execute", tool_name=tool_name, patient_id=patient_id):
+                output = retry_call(
+                    lambda: tool.execute(tool_input),
+                    max_attempts=self._max_retries,
+                    delay_seconds=self._retry_delay,
+                    retry_exceptions=(ConnectionError, TimeoutError),
+                )
 
             if self._enable_validation:
                 validate_tool_output(output)
 
+            record_tool_latency(tool_name, time.monotonic() - start)
             logger.info(
                 "tool_router_execution_success",
                 tool_name=tool_name,
@@ -181,6 +162,7 @@ class ToolRouter:
             )
 
         except (ToolValidationError, RetryExhaustedError) as error:
+            record_tool_latency(tool_name, time.monotonic() - start)
             logger.warning(
                 "tool_router_execution_failed",
                 tool_name=tool_name,

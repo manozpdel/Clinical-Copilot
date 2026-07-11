@@ -131,6 +131,17 @@ class Settings(BaseSettings):
             header.
         enable_security_headers: Whether security response headers are
             automatically applied to every response.
+        enable_tracing: Whether OpenTelemetry tracing is initialized and
+            FastAPI/SQLAlchemy are instrumented.
+        enable_metrics: Whether Prometheus metrics are recorded.
+        enable_langsmith: Whether LangSmith tracing is configured.
+        langsmith_api_key: API key used to authenticate with LangSmith.
+        langsmith_project: LangSmith project name traces are grouped
+            under.
+        otel_exporter_otlp_endpoint: OTLP collector endpoint traces are
+            exported to. When empty, traces are exported to the console
+            instead.
+        prometheus_enabled: Whether the `/metrics` endpoint is exposed.
     """
 
     app_name: str = "Clinical Copilot API"
@@ -220,6 +231,13 @@ class Settings(BaseSettings):
         "frame-src 'self' https://accounts.google.com https://*.google.com; "
     )
     enable_security_headers: bool = True
+    enable_tracing: bool = False
+    enable_metrics: bool = True
+    enable_langsmith: bool = False
+    langsmith_api_key: str = ""
+    langsmith_project: str = "clinical-copilot"
+    otel_exporter_otlp_endpoint: str = ""
+    prometheus_enabled: bool = True
 
     model_config = SettingsConfigDict(
         env_file=".env",
