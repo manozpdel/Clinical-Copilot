@@ -102,8 +102,7 @@ class Settings(BaseSettings):
             served by the application.
         database_url: Async SQLAlchemy connection string for the
             application's PostgreSQL database.
-        jwt_secret_key: Secret key used to sign and verify JWTs. Must be
-            set via environment variable in any non-local environment.
+        jwt_secret_key: Secret key used to sign and verify JWTs.
         jwt_algorithm: Signing algorithm used for JWTs.
         access_token_expire_minutes: Lifetime, in minutes, of issued
             access tokens.
@@ -113,6 +112,25 @@ class Settings(BaseSettings):
             tokens.
         google_client_secret: OAuth client secret associated with
             `google_client_id`.
+        enable_rate_limiting: Whether request rate limiting is active.
+        rate_limit_per_minute: Maximum requests allowed per minute per
+            rate-limit key (authenticated user, or IP as fallback).
+        rate_limit_per_hour: Maximum requests allowed per hour per
+            rate-limit key.
+        daily_request_limit: Maximum number of agent requests a single
+            user may make per calendar day.
+        monthly_token_limit: Maximum number of Groq tokens a single
+            user may consume per calendar month.
+        monthly_cost_limit: Maximum estimated Groq spend, in USD, a
+            single user may incur per calendar month.
+        max_request_size_mb: Maximum allowed request body size, in
+            megabytes, before a request is rejected.
+        trusted_hosts: Hostnames allowed in the `Host` header and as
+            CORS origins.
+        csp_policy: Value of the `Content-Security-Policy` response
+            header.
+        enable_security_headers: Whether security response headers are
+            automatically applied to every response.
     """
 
     app_name: str = "Clinical Copilot API"
@@ -184,6 +202,24 @@ class Settings(BaseSettings):
     refresh_token_expire_days: int = 7
     google_client_id: str = ""
     google_client_secret: str = ""
+
+    enable_rate_limiting: bool = True
+    rate_limit_per_minute: int = 30
+    rate_limit_per_hour: int = 300
+    daily_request_limit: int = 200
+    monthly_token_limit: int = 2_000_000
+    monthly_cost_limit: float = 50.0
+    max_request_size_mb: float = 10.0
+    trusted_hosts: tuple[str, ...] = ("*",)
+    csp_policy: str = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://accounts.google.com https://apis.google.com https://*.google.com; "
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://accounts.google.com; "
+        "img-src 'self' data: https://fastapi.tiangolo.com https://*.googleusercontent.com https://*.google.com; "
+        "connect-src 'self' https://accounts.google.com https://*.googleapis.com https://*.google.com; "
+        "frame-src 'self' https://accounts.google.com https://*.google.com; "
+    )
+    enable_security_headers: bool = True
 
     model_config = SettingsConfigDict(
         env_file=".env",

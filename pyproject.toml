@@ -26,7 +26,7 @@ dependencies = [
     "bcrypt<4.1",
     "httpx>=0.27.0",
     "email-validator>=2.0.0",
-    "httpx2>=2.5.0",
+    "slowapi>=0.1.9",
 ]
 
 [dependency-groups]
@@ -45,7 +45,7 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = [
     "app", "ingest", "rag", "llm", "evaluation", "agent", "tools",
-    "voice", "database", "auth",
+    "voice", "database", "auth", "security",
 ]
 
 [tool.pytest.ini_options]

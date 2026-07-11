@@ -1,17 +1,19 @@
 """Reusable database CRUD operations.
 
 This module is responsible ONLY for parameterized SQLAlchemy queries
-against the User, Conversation, and Query tables. It contains no
-FastAPI routing, authentication, or dependency-injection logic. No raw
-SQL is used anywhere in this module.
+against the User, Conversation, Query, UsageLog, and Quota tables. It
+contains no FastAPI routing, authentication, quota-enforcement, or
+cost-calculation logic. No raw SQL is used anywhere in this module.
 """
 
 import uuid
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import Conversation, Query, User
+from security.models import Quota, UsageLog
 
 
 def _parse_uuid(value: str) -> uuid.UUID:
@@ -88,9 +90,7 @@ async def get_user_by_id(db: AsyncSession, user_id: str | uuid.UUID) -> User | N
             `user_id` is not a valid UUID.
     """
     try:
-        resolved_id = (
-            user_id if isinstance(user_id, uuid.UUID) else uuid.UUID(str(user_id))
-        )
+        resolved_id = user_id if isinstance(user_id, uuid.UUID) else uuid.UUID(str(user_id))
     except ValueError:
         return None
     return await db.get(User, resolved_id)
@@ -225,3 +225,153 @@ async def list_queries_for_conversation(
         .order_by(Query.created_at.asc())
     )
     return list(result.scalars().all())
+
+
+async def create_usage_log(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    conversation_id: uuid.UUID | None,
+    model: str,
+    prompt_tokens: int,
+    completion_tokens: int,
+    cost_usd: float,
+    latency_ms: float,
+) -> UsageLog:
+    """Create and persist a usage log entry for a single agent call.
+
+    Args:
+        db: Active async database session.
+        user_id: Identifier of the requesting user.
+        conversation_id: Identifier of the associated conversation, if
+            known.
+        model: Name of the Groq model used.
+        prompt_tokens: Estimated or reported prompt token count.
+        completion_tokens: Estimated or reported completion token
+            count.
+        cost_usd: Estimated USD cost of the call.
+        latency_ms: Wall-clock time, in milliseconds, taken by the call.
+
+    Returns:
+        UsageLog: The newly created, persisted usage log entry.
+    """
+    log = UsageLog(
+        user_id=user_id,
+        conversation_id=conversation_id,
+        model=model,
+        prompt_tokens=prompt_tokens,
+        completion_tokens=completion_tokens,
+        total_tokens=prompt_tokens + completion_tokens,
+        cost_usd=cost_usd,
+        latency_ms=latency_ms,
+    )
+    db.add(log)
+    await db.commit()
+    await db.refresh(log)
+    return log
+
+
+async def get_or_create_quota(db: AsyncSession, user_id: uuid.UUID) -> Quota:
+    """Fetch a user's quota record, creating a fresh one if absent.
+
+    Args:
+        db: Active async database session.
+        user_id: Identifier of the user.
+
+    Returns:
+        Quota: The existing or newly created quota record.
+    """
+    result = await db.execute(select(Quota).where(Quota.user_id == user_id))
+    quota = result.scalar_one_or_none()
+
+    if quota is not None:
+        return quota
+
+    today = datetime.now(UTC).date()
+    quota = Quota(
+        user_id=user_id,
+        daily_request_count=0,
+        daily_reset_date=today,
+        monthly_token_count=0,
+        monthly_cost_usd=0.0,
+        monthly_reset_month=today.replace(day=1),
+    )
+    db.add(quota)
+    await db.commit()
+    await db.refresh(quota)
+    return quota
+
+
+async def reset_quota_periods(db: AsyncSession, quota: Quota) -> Quota:
+    """Reset a quota's daily/monthly counters if their periods have elapsed.
+
+    Args:
+        db: Active async database session.
+        quota: The quota record to check and potentially reset.
+
+    Returns:
+        Quota: The quota record, reset in place if its periods elapsed.
+    """
+    today = datetime.now(UTC).date()
+
+    if quota.daily_reset_date < today:
+        quota.daily_request_count = 0
+        quota.daily_reset_date = today
+
+    current_month = today.replace(day=1)
+    if quota.monthly_reset_month < current_month:
+        quota.monthly_token_count = 0
+        quota.monthly_cost_usd = 0.0
+        quota.monthly_reset_month = current_month
+
+    await db.commit()
+    await db.refresh(quota)
+    return quota
+
+
+async def increment_quota_usage(
+    db: AsyncSession, quota: Quota, tokens: int, cost_usd: float
+) -> Quota:
+    """Increment a quota's request/token/cost counters after a call.
+
+    Args:
+        db: Active async database session.
+        quota: The quota record to increment.
+        tokens: Number of tokens consumed by the call.
+        cost_usd: Estimated USD cost of the call.
+
+    Returns:
+        Quota: The updated quota record.
+    """
+    quota.daily_request_count += 1
+    quota.monthly_token_count += tokens
+    quota.monthly_cost_usd += cost_usd
+
+    await db.commit()
+    await db.refresh(quota)
+    return quota
+
+
+async def reset_all_quotas(db: AsyncSession) -> int:
+    """Force-reset every user's quota counters, regardless of period.
+
+    Intended for administrative use (e.g. `scripts/reset_quotas.py`).
+
+    Args:
+        db: Active async database session.
+
+    Returns:
+        int: Number of quota records reset.
+    """
+    result = await db.execute(select(Quota))
+    quotas = list(result.scalars().all())
+
+    today = datetime.now(UTC).date()
+    for quota in quotas:
+        quota.daily_request_count = 0
+        quota.daily_reset_date = today
+        quota.monthly_token_count = 0
+        quota.monthly_cost_usd = 0.0
+        quota.monthly_reset_month = today.replace(day=1)
+
+    await db.commit()
+    return len(quotas)

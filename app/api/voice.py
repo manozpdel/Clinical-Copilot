@@ -1,15 +1,15 @@
 """Voice query endpoint.
 
 This module is responsible ONLY for the `/api/voice` route. Audio
-transcription and agent execution are delegated to `VoiceService`;
-persistence of the resulting conversation turn is delegated to
-`database.crud.record_query_turn`. No business logic or raw SQL lives
-here.
+transcription and agent execution are delegated to `VoiceService`; rate
+limiting to `security.limiter`; quota enforcement to `security.quota`;
+usage/cost calculation to `security.budget`; and persistence to
+`database.crud`. No business logic or raw SQL lives here.
 """
 
 import time
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from agent.graph import build_graph
@@ -17,9 +17,12 @@ from app.core.config import Settings, get_settings
 from app.schemas.responses import VoiceResponse
 from app.services.voice_service import VoiceService
 from auth.dependencies import get_current_user
-from database.crud import record_query_turn
+from database.crud import create_usage_log, get_or_create_conversation, record_query_turn
 from database.dependencies import get_db
 from database.models import User
+from security.budget import estimate_usage
+from security.limiter import limiter, rate_limit_string
+from security.quota import QuotaExceededError, check_quota_before_request
 from voice.audio import AudioValidationError
 from voice.pipeline import VoicePipeline
 from voice.transcriber import GroqWhisperTranscriber, TranscriptionError
@@ -51,7 +54,9 @@ def get_voice_service(settings: Settings = Depends(get_settings)) -> VoiceServic
 
 
 @router.post("", response_model=VoiceResponse)
+@limiter.limit(rate_limit_string)
 async def submit_voice(
+    request: Request,
     file: UploadFile = File(...),
     conversation_id: str | None = Form(default=None),
     current_user: User = Depends(get_current_user),
@@ -61,10 +66,14 @@ async def submit_voice(
 ) -> VoiceResponse:
     """Transcribe an uploaded audio file and answer it via the agent.
 
-    Requires authentication. The resulting conversation turn is
+    Requires authentication, is rate-limited, and enforces per-user
+    daily request / monthly token / monthly cost quotas before invoking
+    the pipeline. The resulting conversation turn and usage are
     persisted under the authenticated user's account.
 
     Args:
+        request: The incoming HTTP request, required by the rate
+            limiter's key function.
         file: The uploaded audio file (.wav, .mp3, or .m4a).
         conversation_id: Optional existing conversation identifier.
         current_user: The authenticated user, resolved from the bearer
@@ -81,9 +90,17 @@ async def submit_voice(
 
     Raises:
         HTTPException: With status 413 if the upload exceeds the
-            configured maximum size, or 422 if audio validation or
-            transcription fails.
+            configured maximum size, 429 if the user's quota has been
+            exceeded, or 422 if audio validation or transcription
+            fails.
     """
+    try:
+        await check_quota_before_request(db, current_user.id, settings)
+    except QuotaExceededError as error:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=str(error)
+        ) from error
+
     audio_bytes = await file.read()
 
     if len(audio_bytes) > settings.max_upload_size:
@@ -104,6 +121,15 @@ async def submit_voice(
         raise HTTPException(status_code=422, detail=str(error)) from error
     latency_ms = (time.monotonic() - start_time) * 1000
 
+    usage = estimate_usage(
+        model=settings.generation_model,
+        prompt_text=result["transcript"],
+        completion_text=result["answer"],
+    )
+
+    conversation = await get_or_create_conversation(
+        db, current_user.id, result["conversation_id"]
+    )
     await record_query_turn(
         db,
         user_id=current_user.id,
@@ -112,6 +138,17 @@ async def submit_voice(
         response_text=result["answer"],
         citations=result["citations"],
         evaluation=result["evaluation"],
+        latency_ms=latency_ms,
+    )
+
+    await create_usage_log(
+        db,
+        user_id=current_user.id,
+        conversation_id=conversation.id,
+        model=settings.generation_model,
+        prompt_tokens=usage.prompt_tokens,
+        completion_tokens=usage.completion_tokens,
+        cost_usd=usage.cost_usd,
         latency_ms=latency_ms,
     )
 

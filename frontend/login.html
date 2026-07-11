@@ -14,7 +14,7 @@
     <div class="auth-logo">Clinical Copilot</div>
     <p class="auth-welcome">Sign in to ask clinical questions by text or voice.</p>
 
-    <div id="login-loading" class="loading-indicator" style="justify-content:center;">
+    <div id="login-loading" class="loading-indicator loading-centered">
       <div class="spinner-large"></div>
     </div>
 
@@ -24,37 +24,6 @@
   </div>
 
   <script type="module" src="js/auth.js"></script>
-  <script type="module">
-    import { isAuthenticated, initGoogleSignIn } from "./js/auth.js";
-
-    const loadingEl = document.getElementById("login-loading");
-    const buttonContainer = document.getElementById("google-button-container");
-    const errorEl = document.getElementById("login-error");
-
-    function showLoginError(message) {
-      errorEl.textContent = message;
-      errorEl.classList.remove("hidden");
-    }
-
-    async function init() {
-      if (isAuthenticated()) {
-        window.location.href = "index.html";
-        return;
-      }
-
-      try {
-        await initGoogleSignIn("google-button-container");
-        loadingEl.classList.add("hidden");
-        buttonContainer.classList.remove("hidden");
-      } catch (error) {
-        loadingEl.classList.add("hidden");
-        showLoginError(
-          error.message || "Unable to load sign-in. Please try again."
-        );
-      }
-    }
-
-    init();
-  </script>
+  <script type="module" src="js/login.js"></script>
 </body>
 </html>

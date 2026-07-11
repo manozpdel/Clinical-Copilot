@@ -434,3 +434,7 @@ input[type="file"] {
     gap: 8px;
   }
 }
+
+.loading-centered {
+  justify-content: center;
+}
