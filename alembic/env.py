@@ -17,6 +17,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from app.core.config import get_settings
 from database.base import Base
 from database.models import Conversation, Query, User  # noqa: F401
+from security.models import Quota, UsageLog  # noqa: F401 (register tables)
 
 config = context.config
 
