@@ -32,6 +32,8 @@ class QueryResponse(BaseModel):
         latency_seconds: Wall-clock time taken to produce the answer.
         conversation_id: Identifier of the conversation session.
         request_id: Identifier unique to this request.
+        query_id: Identifier of the persisted Query record this
+            response corresponds to, used to attach feedback/ratings.
     """
 
     answer: str
@@ -40,6 +42,7 @@ class QueryResponse(BaseModel):
     latency_seconds: float
     conversation_id: str
     request_id: str
+    query_id: str | None = None
 
 
 class VoiceResponse(BaseModel):
@@ -52,6 +55,8 @@ class VoiceResponse(BaseModel):
         evaluation: Evaluation metrics computed for the answer.
         conversation_id: Identifier of the conversation session.
         request_id: Identifier unique to this request.
+        query_id: Identifier of the persisted Query record this
+            response corresponds to, used to attach feedback/ratings.
     """
 
     transcript: str
@@ -60,6 +65,7 @@ class VoiceResponse(BaseModel):
     evaluation: EvaluationScores
     conversation_id: str
     request_id: str
+    query_id: str | None = None
 
 
 class HealthResponse(BaseModel):

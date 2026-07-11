@@ -18,6 +18,9 @@ export const API_BASE = "/api";
 
 let refreshInFlight = null;
 
+// Add a request cache to prevent duplicate in-flight requests
+const pendingRequests = new Map();
+
 async function performRefresh() {
   const refreshToken = getRefreshToken();
   if (!refreshToken) {
@@ -66,34 +69,56 @@ export async function apiFetch(path, options = {}) {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  let response;
-  try {
-    response = await fetch(`${API_BASE}${path}`, { ...options, headers });
-  } catch (networkError) {
-    throw new Error("Network error. Please check your connection and try again.");
+  // Create a cache key from the path and method
+  const method = options.method || 'GET';
+  const cacheKey = `${method}:${path}`;
+  
+  // Check if this exact request is already in progress
+  if (pendingRequests.has(cacheKey)) {
+    console.log(`♻️ Reusing in-flight request: ${cacheKey}`);
+    return pendingRequests.get(cacheKey);
   }
 
-  if (response.status === 401) {
-    if (!refreshInFlight) {
-      refreshInFlight = performRefresh().finally(() => {
-        refreshInFlight = null;
-      });
+  // Create the request promise
+  const requestPromise = (async () => {
+    try {
+      let response;
+      try {
+        response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+      } catch (networkError) {
+        throw new Error("Network error. Please check your connection and try again.");
+      }
+
+      if (response.status === 401) {
+        if (!refreshInFlight) {
+          refreshInFlight = performRefresh().finally(() => {
+            refreshInFlight = null;
+          });
+        }
+        const refreshed = await refreshInFlight;
+
+        if (!refreshed) {
+          handleAuthFailure();
+          throw new Error("Your session has expired. Please log in again.");
+        }
+
+        headers.Authorization = `Bearer ${getAccessToken()}`;
+        response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+
+        if (response.status === 401) {
+          handleAuthFailure();
+          throw new Error("Your session has expired. Please log in again.");
+        }
+      }
+
+      return response;
+    } finally {
+      // Remove from cache after the request completes (success or error)
+      pendingRequests.delete(cacheKey);
     }
-    const refreshed = await refreshInFlight;
+  })();
 
-    if (!refreshed) {
-      handleAuthFailure();
-      throw new Error("Your session has expired. Please log in again.");
-    }
-
-    headers.Authorization = `Bearer ${getAccessToken()}`;
-    response = await fetch(`${API_BASE}${path}`, { ...options, headers });
-
-    if (response.status === 401) {
-      handleAuthFailure();
-      throw new Error("Your session has expired. Please log in again.");
-    }
-  }
-
-  return response;
+  // Store the promise in the cache
+  pendingRequests.set(cacheKey, requestPromise);
+  return requestPromise;
 }

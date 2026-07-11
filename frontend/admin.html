@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Clinical Copilot</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">Clinical Copilot</div>
+    <div id="nav-unauthenticated" class="nav-section hidden">
+      <a href="login.html" class="nav-link">Log in</a>
+    </div>
+    <div id="nav-authenticated" class="nav-section hidden">
+      <a href="index.html" class="nav-link">Chat</a>
+      <a href="admin.html" class="nav-link">Admin</a>
+      <div class="user-menu">
+        <button id="user-menu-button" class="user-menu-button" type="button">
+          <span id="user-avatar" class="user-avatar"></span>
+          <span id="user-name" class="user-name"></span>
+        </button>
+        <div id="user-dropdown" class="user-dropdown hidden">
+          <div class="dropdown-email" id="user-email"></div>
+          <a href="profile.html" class="dropdown-item">Profile</a>
+          <button id="logout-button" class="dropdown-item logout" type="button">Log out</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <div class="app-shell">
+    <header class="app-header">
+      <h1>Feedback Analytics</h1>
+      <p class="subtitle">Administrator view of user feedback, ratings, and reports.</p>
+    </header>
+
+    <main class="app-main">
+      <div id="admin-loading" class="loading-indicator loading-centered">
+        <div class="spinner-large"></div>
+      </div>
+
+      <div id="admin-error" class="error-banner hidden" role="alert"></div>
+
+      <section id="admin-content" class="hidden">
+        <div class="stat-grid">
+          <div class="stat-card">
+            <span class="stat-label">Average Rating</span>
+            <span id="stat-average-rating" class="stat-value">—</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Positive Feedback</span>
+            <span id="stat-positive" class="stat-value stat-positive">—</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Negative Feedback</span>
+            <span id="stat-negative" class="stat-value stat-negative">—</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Total Feedback</span>
+            <span id="stat-total-feedback" class="stat-value">—</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Total Ratings</span>
+            <span id="stat-total-ratings" class="stat-value">—</span>
+          </div>
+        </div>
+
+        <div class="result-panel">
+          <h2>Reports by Reason</h2>
+          <dl id="reports-by-reason" class="evaluation-grid"></dl>
+          <p id="reports-empty" class="hidden">No reports submitted yet.</p>
+        </div>
+
+        <div class="result-panel">
+          <h2>Most Common Issues</h2>
+          <ol id="common-issues-list"></ol>
+          <p id="issues-empty" class="hidden">No issues reported yet.</p>
+        </div>
+
+        <div class="result-panel">
+          <h2>Daily Trend (last 30 days)</h2>
+          <div id="trend-chart" class="trend-chart"></div>
+          <p id="trend-empty" class="hidden">No feedback activity in this period.</p>
+        </div>
+
+        <div class="result-panel">
+          <h2>Export Feedback</h2>
+          <div class="export-actions">
+            <button id="export-json-button" class="primary-button" type="button">Download JSON</button>
+            <button id="export-csv-button" class="primary-button" type="button">Download CSV</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="js/router.js"></script>
+  <script type="module" src="js/guards.js"></script>
+  <script type="module" src="js/admin.js"></script>
+</body>
+</html>

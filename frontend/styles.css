@@ -438,3 +438,241 @@ input[type="file"] {
 .loading-centered {
   justify-content: center;
 }
+
+/* Feedback / rating / history (Part 12) */
+
+.response-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.icon-button {
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--color-text);
+}
+
+.icon-button:hover {
+  background: var(--color-border);
+}
+
+.rating-widget {
+  display: flex;
+  gap: 2px;
+}
+
+.rating-widget .star {
+  background: transparent;
+  border: none;
+  font-size: 1.3rem;
+  color: var(--color-border);
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.rating-widget .star.selected {
+  color: #facc15;
+}
+
+.nav-link-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.history-item {
+  border-bottom: 1px solid var(--color-border);
+  padding: 12px 0;
+}
+
+.history-question {
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+
+.history-answer {
+  color: var(--color-muted);
+  margin: 0 0 6px;
+}
+
+.history-meta {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  margin: 0 0 6px;
+}
+
+.history-compare-label {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Modals */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.modal-box {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 24px;
+  width: 90%;
+  max-width: 420px;
+}
+
+.modal-box-wide {
+  max-width: 720px;
+}
+
+.modal-box h3 {
+  margin-top: 0;
+}
+
+.modal-box textarea,
+.modal-box select {
+  width: 100%;
+  margin-top: 8px;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text);
+  padding: 10px;
+}
+
+.modal-section {
+  margin-top: 14px;
+}
+
+.modal-label {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.secondary-button {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  border-radius: var(--radius);
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.comparison-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.comparison-column h4 {
+  margin: 0 0 4px;
+  color: var(--color-primary);
+}
+
+.comparison-timestamp {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  margin: 0 0 6px;
+}
+
+.comparison-meta {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  margin-top: 8px;
+}
+
+@media (max-width: 480px) {
+  .comparison-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Admin dashboard (Part 12 addendum) */
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+}
+
+.stat-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.stat-positive {
+  color: var(--color-success);
+}
+
+.stat-negative {
+  color: var(--color-error);
+}
+
+.trend-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 120px;
+  margin-top: 12px;
+}
+
+.trend-bar {
+  flex: 1;
+  background: var(--color-primary);
+  border-radius: 3px 3px 0 0;
+  min-height: 4px;
+}
+
+.export-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+#common-issues-list {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  color: var(--color-text);
+  text-transform: capitalize;
+}

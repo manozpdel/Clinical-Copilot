@@ -18,7 +18,7 @@ from app.core.config import Settings, get_settings
 from app.schemas.responses import VoiceResponse
 from app.services.voice_service import VoiceService
 from auth.dependencies import get_current_user
-from database.crud import create_usage_log, get_or_create_conversation, record_query_turn
+from database.crud import create_usage_log, record_query_turn
 from database.dependencies import get_db
 from database.models import User
 from observability.logging import bind_request_context
@@ -72,7 +72,9 @@ async def submit_voice(
     Requires authentication, is rate-limited, and enforces per-user
     daily request / monthly token / monthly cost quotas before invoking
     the pipeline. The resulting conversation turn and usage are
-    persisted under the authenticated user's account.
+    persisted under the authenticated user's account, and the persisted
+    query's ID is returned so the frontend can attach feedback/ratings
+    to it.
 
     Args:
         request: The incoming HTTP request, required by the rate
@@ -89,7 +91,8 @@ async def submit_voice(
 
     Returns:
         VoiceResponse: The transcript, generated answer, citations,
-            evaluation, and conversation/request identifiers.
+            evaluation, conversation/request identifiers, and the
+            persisted query ID.
 
     Raises:
         HTTPException: With status 413 if the upload exceeds the
@@ -135,10 +138,7 @@ async def submit_voice(
     )
     record_llm_tokens(settings.generation_model, usage.prompt_tokens, usage.completion_tokens)
 
-    conversation = await get_or_create_conversation(
-        db, current_user.id, result["conversation_id"]
-    )
-    await record_query_turn(
+    conversation, query = await record_query_turn(
         db,
         user_id=current_user.id,
         conversation_id=result["conversation_id"],
@@ -160,4 +160,4 @@ async def submit_voice(
         latency_ms=latency_ms,
     )
 
-    return VoiceResponse(**result)
+    return VoiceResponse(**result, query_id=str(query.id))

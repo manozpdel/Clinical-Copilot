@@ -11,6 +11,8 @@ from app.core.logging import configure_logging, get_logger
 from database.base import Base
 from database.models import Conversation, Query, User  # noqa: F401 (register tables)
 from database.session import engine
+from feedback.models import Feedback, HallucinationReport, Rating  # noqa: F401
+from security.models import Quota, UsageLog  # noqa: F401 (register tables)
 
 
 async def create_all_tables() -> None:

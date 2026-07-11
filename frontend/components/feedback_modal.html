@@ -1,0 +1,22 @@
+<div id="feedback-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <h3>Leave Feedback</h3>
+      <textarea id="feedback-comment-input" rows="4" maxlength="2000" placeholder="What could be improved?"></textarea>
+  
+      <div class="modal-section">
+        <span class="modal-label">Report an issue (optional)</span>
+        <select id="feedback-report-reason">
+          <option value="">No issue to report</option>
+          <option value="hallucination">Hallucination</option>
+          <option value="incorrect_citation">Incorrect citation</option>
+          <option value="unsafe_response">Unsafe response</option>
+          <option value="incomplete_answer">Incomplete answer</option>
+        </select>
+      </div>
+  
+      <div class="modal-actions">
+        <button id="feedback-modal-cancel" class="secondary-button" type="button">Cancel</button>
+        <button id="feedback-modal-submit" class="primary-button" type="button">Submit</button>
+      </div>
+    </div>
+  </div>
