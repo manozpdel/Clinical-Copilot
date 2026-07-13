@@ -62,7 +62,8 @@ async def submit_query(
     Requires authentication, is rate-limited, and enforces per-user
     daily request / monthly token / monthly cost quotas before invoking
     the agent. The resulting conversation turn and usage are persisted
-    under the authenticated user's account.
+    under the authenticated user's account, and the persisted query's
+    ID is returned so the frontend can attach feedback/ratings to it.
 
     Args:
         request: The incoming HTTP request, required by the rate
@@ -77,7 +78,8 @@ async def submit_query(
 
     Returns:
         QueryResponse: The generated answer, citations, evaluation,
-            latency, and conversation/request identifiers.
+            latency, conversation/request identifiers, and the
+            persisted query ID.
 
     Raises:
         HTTPException: With status 429 if the user's quota has been
@@ -105,7 +107,7 @@ async def submit_query(
     )
     record_llm_tokens(settings.generation_model, usage.prompt_tokens, usage.completion_tokens)
 
-    conversation = await record_query_turn(
+    conversation, query = await record_query_turn(
         db,
         user_id=current_user.id,
         conversation_id=result["conversation_id"],
@@ -127,4 +129,4 @@ async def submit_query(
         latency_ms=result["latency_seconds"] * 1000,
     )
 
-    return QueryResponse(**result)
+    return QueryResponse(**result, query_id=str(query.id))

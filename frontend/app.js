@@ -1,5 +1,8 @@
 import { apiFetch } from "./js/api.js";
 import { requireAuth } from "./js/guards.js";
+import { openFeedbackModal, submitThumbsFeedback } from "./js/feedback.js";
+import { renderRatingWidget } from "./js/rating.js";
+import { loadHistory } from "./js/history.js";
 
 const textForm = document.getElementById("text-tab");
 const voiceForm = document.getElementById("voice-tab");
@@ -17,8 +20,32 @@ const citationsPanel = document.getElementById("citations-panel");
 const citationsList = document.getElementById("citations-list");
 const evaluationPanel = document.getElementById("evaluation-panel");
 const evaluationList = document.getElementById("evaluation-list");
+const ratingContainer = document.getElementById("rating-container");
+const thumbsUpButton = document.getElementById("thumbs-up-button");
+const thumbsDownButton = document.getElementById("thumbs-down-button");
+const commentButton = document.getElementById("comment-button");
+const historyPanel = document.getElementById("history-panel");
+const openHistoryButton = document.getElementById("open-history-button");
+
+let currentQueryId = null;
 
 requireAuth();
+
+// Load shared feedback modal / comparison modal markup by fetching the
+// component partials once, so they're available without duplicating
+// markup across every page.
+async function loadComponent(url, containerId) {
+  try {
+    const response = await fetch(url);
+    if (response.ok) {
+      document.getElementById(containerId).innerHTML = await response.text();
+    }
+  } catch (error) {
+    // Non-fatal: feedback modal simply won't be available.
+  }
+}
+loadComponent("components/feedback_modal.html", "feedback-modal-container");
+loadComponent("components/comparison_modal.html", "comparison-modal-container");
 
 tabButtons.forEach((button) => {
   button.addEventListener("click", () => {
@@ -28,6 +55,37 @@ tabButtons.forEach((button) => {
     document.getElementById(button.dataset.tab).classList.add("active");
   });
 });
+
+if (openHistoryButton) {
+  openHistoryButton.addEventListener("click", () => {
+    historyPanel.classList.toggle("hidden");
+    if (!historyPanel.classList.contains("hidden")) {
+      loadHistory(document.getElementById("history-list"));
+    }
+  });
+}
+
+if (thumbsUpButton) {
+  thumbsUpButton.addEventListener("click", () => {
+    if (currentQueryId) {
+      submitThumbsFeedback(currentQueryId, true);
+    }
+  });
+}
+if (thumbsDownButton) {
+  thumbsDownButton.addEventListener("click", () => {
+    if (currentQueryId) {
+      submitThumbsFeedback(currentQueryId, false);
+    }
+  });
+}
+if (commentButton) {
+  commentButton.addEventListener("click", () => {
+    if (currentQueryId) {
+      openFeedbackModal(currentQueryId);
+    }
+  });
+}
 
 function setLoading(isLoading) {
   loadingIndicator.classList.toggle("hidden", !isLoading);
@@ -90,6 +148,11 @@ function renderResult(result, { showTranscript }) {
   answerPanel.classList.remove("hidden");
   renderCitations(result.citations);
   renderEvaluation(result.evaluation);
+
+  currentQueryId = result.query_id || null;
+  if (currentQueryId) {
+    renderRatingWidget(ratingContainer, currentQueryId);
+  }
 }
 
 async function handleResponse(response) {

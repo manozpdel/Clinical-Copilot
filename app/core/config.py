@@ -142,6 +142,17 @@ class Settings(BaseSettings):
             exported to. When empty, traces are exported to the console
             instead.
         prometheus_enabled: Whether the `/metrics` endpoint is exposed.
+        enable_feedback: Whether the human feedback system (likes,
+            ratings, comments, hallucination reports) is active.
+        enable_export: Whether the feedback export endpoint/scripts are
+            enabled.
+        max_feedback_length: Maximum allowed length, in characters, of
+            free-text feedback comments and hallucination report
+            details.
+        enable_hallucination_reports: Whether users may submit
+            hallucination/citation/safety reports.
+        admin_emails: Email addresses granted access to feedback
+            analytics and export endpoints.
     """
 
     app_name: str = "Clinical Copilot API"
@@ -238,6 +249,12 @@ class Settings(BaseSettings):
     langsmith_project: str = "clinical-copilot"
     otel_exporter_otlp_endpoint: str = ""
     prometheus_enabled: bool = True
+
+    enable_feedback: bool = True
+    enable_export: bool = True
+    max_feedback_length: int = 2000
+    enable_hallucination_reports: bool = True
+    admin_emails: tuple[str, ...] = ()
 
     model_config = SettingsConfigDict(
         env_file=".env",

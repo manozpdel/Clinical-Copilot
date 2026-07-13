@@ -20,6 +20,7 @@ from app.core.logging import configure_logging, get_logger
 from auth.dependencies import get_current_user
 from database.models import User
 from database.session import engine
+from feedback.router import router as feedback_router
 from observability.health import HealthService
 from observability.middleware import ObservabilityMiddleware
 from observability.models import HealthSummary
@@ -94,6 +95,7 @@ app.add_middleware(
 app.include_router(health.router)
 app.include_router(auth_router)
 app.include_router(api_router)
+app.include_router(feedback_router)
 
 if settings.enable_frontend and settings.static_files_path.exists():
     app.mount(

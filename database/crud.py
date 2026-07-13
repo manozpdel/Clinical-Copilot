@@ -176,7 +176,7 @@ async def record_query_turn(
     citations: list[str],
     evaluation: dict,
     latency_ms: float,
-) -> Conversation:
+) -> tuple[Conversation, Query]:
     """Persist one full question/answer turn under a user's conversation.
 
     Args:
@@ -191,10 +191,13 @@ async def record_query_turn(
         latency_ms: Wall-clock time, in milliseconds, taken to answer.
 
     Returns:
-        Conversation: The conversation the turn was recorded under.
+        tuple[Conversation, Query]: The conversation the turn was
+            recorded under, and the newly persisted query record
+            (returned so callers, e.g. the API layer, can expose its
+            ID for attaching feedback/ratings).
     """
     conversation = await get_or_create_conversation(db, user_id, conversation_id)
-    await create_query_record(
+    query = await create_query_record(
         db,
         conversation_id=conversation.id,
         query_text=query_text,
@@ -203,7 +206,7 @@ async def record_query_turn(
         evaluation=evaluation,
         latency_ms=latency_ms,
     )
-    return conversation
+    return conversation, query
 
 
 async def list_queries_for_conversation(
