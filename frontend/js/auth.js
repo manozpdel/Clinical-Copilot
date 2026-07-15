@@ -16,6 +16,9 @@ import {
   setTokens,
 } from "./storage.js";
 
+// Cache for fetch promise to prevent duplicate requests
+let currentUserPromise = null;
+
 export function isAuthenticated() {
   return Boolean(getAccessToken());
 }
@@ -27,6 +30,7 @@ export function logout() {
 
 /**
  * Fetch the authenticated user's profile from the backend and cache it.
+ * Uses a promise cache to prevent duplicate concurrent requests.
  *
  * @returns {Promise<object>} The user's profile.
  * @throws {Error} If the request fails (including after a failed
@@ -34,13 +38,29 @@ export function logout() {
  *   to the login page).
  */
 export async function fetchCurrentUser() {
-  const response = await apiFetch("/../auth/me", { method: "GET" });
-  if (!response.ok) {
-    throw new Error("Unable to load your profile.");
+  // If there's already a fetch in progress, return that promise
+  if (currentUserPromise) {
+    console.log('Using existing fetch promise for user');
+    return currentUserPromise;
   }
-  const user = await response.json();
-  setCachedUser(user);
-  return user;
+  
+  console.log('Starting new user fetch');
+  currentUserPromise = (async () => {
+    try {
+      const response = await apiFetch("/../auth/me", { method: "GET" });
+      if (!response.ok) {
+        throw new Error("Unable to load your profile.");
+      }
+      const user = await response.json();
+      setCachedUser(user);
+      return user;
+    } finally {
+      // Clear the promise after it completes
+      currentUserPromise = null;
+    }
+  })();
+  
+  return currentUserPromise;
 }
 
 /**

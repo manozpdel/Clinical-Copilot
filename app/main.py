@@ -33,6 +33,8 @@ from security.middleware import (
     RequestSizeLimitMiddleware,
     RequestTimingMiddleware,
 )
+from streaming.sse import router as streaming_sse_router
+from streaming.websocket import router as streaming_ws_router
 
 configure_logging()
 logger = get_logger(__name__)
@@ -41,14 +43,7 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    """Manage application startup and shutdown logging.
-
-    Args:
-        app: The FastAPI application instance.
-
-    Yields:
-        None: Control is yielded back to FastAPI while the application runs.
-    """
+    """Manage application startup and shutdown logging."""
     logger.info(
         "application_startup",
         app_name=settings.app_name,
@@ -96,6 +91,8 @@ app.include_router(health.router)
 app.include_router(auth_router)
 app.include_router(api_router)
 app.include_router(feedback_router)
+app.include_router(streaming_sse_router)
+app.include_router(streaming_ws_router)
 
 if settings.enable_frontend and settings.static_files_path.exists():
     app.mount(
@@ -107,24 +104,13 @@ if settings.enable_frontend and settings.static_files_path.exists():
 
 @app.get("/")
 async def read_root() -> dict[str, str]:
-    """Return the root welcome message for the API.
-
-    Returns:
-        dict[str, str]: A mapping containing the API's welcome message.
-    """
+    """Return the root welcome message for the API."""
     return {"message": ROOT_MESSAGE}
 
 
 @app.get("/metrics")
 async def get_metrics() -> Response:
-    """Expose Prometheus metrics in text exposition format.
-
-    Returns:
-        Response: The current metrics snapshot.
-
-    Raises:
-        HTTPException: With status 404 if metrics are disabled.
-    """
+    """Expose Prometheus metrics in text exposition format."""
     if not settings.prometheus_enabled:
         raise HTTPException(status_code=404, detail="Metrics endpoint disabled.")
     return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
@@ -134,19 +120,6 @@ async def get_metrics() -> Response:
 async def get_detailed_health(
     current_user: User = Depends(get_current_user),
 ) -> HealthSummary:
-    """Return a detailed health summary of every application dependency.
-
-    Requires authentication, since detailed health information (disk,
-    memory, and dependency status) is more sensitive than the basic
-    liveness check at `/health`.
-
-    Args:
-        current_user: The authenticated user, resolved from the bearer
-            JWT.
-
-    Returns:
-        HealthSummary: The aggregated health of the database, Chroma,
-            Groq, LangSmith, disk, and memory.
-    """
+    """Return a detailed health summary of every application dependency."""
     service = HealthService(settings)
     return await service.get_summary()

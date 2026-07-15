@@ -512,7 +512,6 @@ dependencies = [
     { name = "fastembed" },
     { name = "groq" },
     { name = "httpx" },
-    { name = "httpxx" },
     { name = "langchain" },
     { name = "langchain-groq" },
     { name = "langgraph" },
@@ -533,6 +532,7 @@ dependencies = [
     { name = "sqlalchemy", extra = ["asyncio"] },
     { name = "structlog" },
     { name = "uvicorn" },
+    { name = "websockets" },
 ]
 
 [package.dev-dependencies]
@@ -554,20 +554,19 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.115.0" },
     { name = "fastembed", specifier = ">=0.4.0" },
     { name = "groq", specifier = ">=0.11.0" },
-    { name = "httpx", specifier = ">=0.28.0" },
-    { name = "httpxx", specifier = ">=0.1.2" },
+    { name = "httpx", specifier = ">=0.27.0" },
     { name = "langchain", specifier = ">=0.3.0" },
     { name = "langchain-groq", specifier = ">=0.2.0" },
     { name = "langgraph", specifier = ">=0.2.0" },
-    { name = "langsmith", specifier = ">=0.9.8" },
-    { name = "opentelemetry-api", specifier = ">=1.43.0" },
-    { name = "opentelemetry-exporter-otlp", specifier = ">=1.43.0" },
-    { name = "opentelemetry-instrumentation-fastapi", specifier = ">=0.64b0" },
-    { name = "opentelemetry-instrumentation-sqlalchemy", specifier = ">=0.64b0" },
-    { name = "opentelemetry-sdk", specifier = ">=1.43.0" },
+    { name = "langsmith", specifier = ">=0.1.130" },
+    { name = "opentelemetry-api", specifier = ">=1.27.0" },
+    { name = "opentelemetry-exporter-otlp", specifier = ">=1.27.0" },
+    { name = "opentelemetry-instrumentation-fastapi", specifier = ">=0.48b0" },
+    { name = "opentelemetry-instrumentation-sqlalchemy", specifier = ">=0.48b0" },
+    { name = "opentelemetry-sdk", specifier = ">=1.27.0" },
     { name = "pandas", specifier = ">=2.2.0" },
     { name = "passlib", extras = ["bcrypt"], specifier = ">=1.7.4" },
-    { name = "prometheus-client", specifier = ">=0.25.0" },
+    { name = "prometheus-client", specifier = ">=0.21.0" },
     { name = "pydantic", specifier = ">=2.9.0" },
     { name = "pydantic-settings", specifier = ">=2.5.0" },
     { name = "python-jose", extras = ["cryptography"], specifier = ">=3.3.0" },
@@ -576,6 +575,7 @@ requires-dist = [
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.0" },
     { name = "structlog", specifier = ">=24.4.0" },
     { name = "uvicorn", specifier = ">=0.32.0" },
+    { name = "websockets", specifier = ">=13.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -1111,18 +1111,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/b1/df/48c586a5fe32a0f01324ee087459e112ebb7224f646c0b5023f5e79e9956/httpx-0.28.1.tar.gz", hash = "sha256:75e98c5f16b0f35b567856f597f06ff2270a374470a5c2392242528e3e3e42fc", size = 141406, upload-time = "2024-12-06T15:37:23.222Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/2a/39/e50c7c3a983047577ee07d2a9e53faf5a69493943ec3f6a384bdc792deb2/httpx-0.28.1-py3-none-any.whl", hash = "sha256:d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad", size = 73517, upload-time = "2024-12-06T15:37:21.509Z" },
-]
-
-[[package]]
-name = "httpxx"
-version = "0.1.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "httpx" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/d5/17/bd974febfdecdcd7157cf83a402eadaad42617976e24f680b9be10f17154/httpxx-0.1.2.tar.gz", hash = "sha256:663a187f9bddb146df523e496c1b97ae62c12781f431cd245ad3da07ecdd8cf1", size = 26555, upload-time = "2025-12-22T05:30:24.101Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/da/e4/b367e8dd236cbde921c0834717cae3c6018144740befdf6313e0a141e664/httpxx-0.1.2-py3-none-any.whl", hash = "sha256:6d0d39c7d5fd298464a8c7f443797f1d261c38eeeeaac12060985b105d12f10b", size = 24338, upload-time = "2025-12-22T05:30:25.248Z" },
 ]
 
 [[package]]

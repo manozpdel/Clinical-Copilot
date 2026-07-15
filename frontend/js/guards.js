@@ -22,14 +22,19 @@ export async function requireAuth() {
   }
 
   try {
+    // Fetch user and cache it
     await fetchCurrentUser();
     return true;
   } catch (error) {
     // fetchCurrentUser/apiFetch already redirects to login.html on
     // an unrecoverable 401; this catch only guards against unexpected
     // errors so the page doesn't silently continue rendering.
+    console.error('Auth guard error:', error);
+    window.location.href = "login.html";
     return false;
   }
 }
 
+// Auto-run the guard when this module is imported
+// This ensures protected pages are checked immediately
 requireAuth();

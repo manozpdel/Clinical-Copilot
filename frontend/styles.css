@@ -676,3 +676,76 @@ input[type="file"] {
   color: var(--color-text);
   text-transform: capitalize;
 }
+
+/* Real-time streaming (Part 13) */
+
+.node-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.node-badge {
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  color: var(--color-muted);
+}
+
+.node-badge.active {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.node-badge.complete {
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 6px;
+  background: var(--color-surface-alt);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--color-primary);
+  transition: width 0.3s ease;
+}
+
+.streaming-answer {
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.typing-cursor {
+  display: inline-block;
+  animation: blink 1s step-start infinite;
+  color: var(--color-primary);
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.transcript-line {
+  font-style: italic;
+  color: var(--color-muted);
+  margin-bottom: 10px;
+}
+
+.tool-panel {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
