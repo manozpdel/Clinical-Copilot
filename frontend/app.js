@@ -1,8 +1,10 @@
-import { apiFetch } from "./js/api.js";
 import { requireAuth } from "./js/guards.js";
 import { openFeedbackModal, submitThumbsFeedback } from "./js/feedback.js";
 import { renderRatingWidget } from "./js/rating.js";
 import { loadHistory } from "./js/history.js";
+import { streamQuery, streamVoiceQuery } from "./js/streaming.js";
+import { createEventDispatcher } from "./js/events.js";
+import { nodeLabel, setActiveNode, setCompleteNode, setProgress } from "./js/progress.js";
 
 const textForm = document.getElementById("text-tab");
 const voiceForm = document.getElementById("voice-tab");
@@ -10,12 +12,14 @@ const tabButtons = document.querySelectorAll(".tab-button");
 const tabContents = document.querySelectorAll(".tab-content");
 const questionInput = document.getElementById("question-input");
 const audioInput = document.getElementById("audio-input");
-const loadingIndicator = document.getElementById("loading-indicator");
 const errorBanner = document.getElementById("error-banner");
-const transcriptPanel = document.getElementById("transcript-panel");
-const transcriptText = document.getElementById("transcript-text");
+
+const streamingPanel = document.getElementById("streaming-panel");
+const streamingAnswerText = document.getElementById("streaming-answer-text");
+const typingCursor = document.getElementById("typing-cursor");
+const transcriptLine = document.getElementById("transcript-line");
+
 const answerPanel = document.getElementById("answer-panel");
-const answerText = document.getElementById("answer-text");
 const citationsPanel = document.getElementById("citations-panel");
 const citationsList = document.getElementById("citations-list");
 const evaluationPanel = document.getElementById("evaluation-panel");
@@ -28,12 +32,10 @@ const historyPanel = document.getElementById("history-panel");
 const openHistoryButton = document.getElementById("open-history-button");
 
 let currentQueryId = null;
+let currentConversationId = null;
 
 requireAuth();
 
-// Load shared feedback modal / comparison modal markup by fetching the
-// component partials once, so they're available without duplicating
-// markup across every page.
 async function loadComponent(url, containerId) {
   try {
     const response = await fetch(url);
@@ -41,7 +43,7 @@ async function loadComponent(url, containerId) {
       document.getElementById(containerId).innerHTML = await response.text();
     }
   } catch (error) {
-    // Non-fatal: feedback modal simply won't be available.
+    // Non-fatal: modal simply won't be available.
   }
 }
 loadComponent("components/feedback_modal.html", "feedback-modal-container");
@@ -67,28 +69,18 @@ if (openHistoryButton) {
 
 if (thumbsUpButton) {
   thumbsUpButton.addEventListener("click", () => {
-    if (currentQueryId) {
-      submitThumbsFeedback(currentQueryId, true);
-    }
+    if (currentQueryId) submitThumbsFeedback(currentQueryId, true);
   });
 }
 if (thumbsDownButton) {
   thumbsDownButton.addEventListener("click", () => {
-    if (currentQueryId) {
-      submitThumbsFeedback(currentQueryId, false);
-    }
+    if (currentQueryId) submitThumbsFeedback(currentQueryId, false);
   });
 }
 if (commentButton) {
   commentButton.addEventListener("click", () => {
-    if (currentQueryId) {
-      openFeedbackModal(currentQueryId);
-    }
+    if (currentQueryId) openFeedbackModal(currentQueryId);
   });
-}
-
-function setLoading(isLoading) {
-  loadingIndicator.classList.toggle("hidden", !isLoading);
 }
 
 function showError(message) {
@@ -101,34 +93,34 @@ function clearError() {
   errorBanner.textContent = "";
 }
 
-function hideResults() {
-  transcriptPanel.classList.add("hidden");
+function resetStreamingUI({ showTranscript }) {
+  streamingPanel.classList.remove("hidden");
   answerPanel.classList.add("hidden");
   citationsPanel.classList.add("hidden");
   evaluationPanel.classList.add("hidden");
+  citationsList.innerHTML = "";
+  evaluationList.innerHTML = "";
+  setProgress(0);
+  streamingAnswerText.textContent = "";
+  streamingAnswerText.appendChild(typingCursor);
+  typingCursor.classList.remove("hidden");
+  transcriptLine.classList.toggle("hidden", !showTranscript);
+  transcriptLine.textContent = "";
+  document.querySelectorAll(".node-badge").forEach((badge) => {
+    badge.classList.remove("active", "complete");
+  });
 }
 
-function renderCitations(citations) {
-  citationsList.innerHTML = "";
-  if (!citations || citations.length === 0) {
-    citationsPanel.classList.add("hidden");
-    return;
-  }
-  citations.forEach((citation) => {
-    const item = document.createElement("li");
-    item.textContent = citation;
-    citationsList.appendChild(item);
-  });
+function appendCitation(data) {
+  const item = document.createElement("li");
+  item.textContent = `${data.citation} (similarity: ${data.similarity.toFixed(2)})`;
+  citationsList.appendChild(item);
   citationsPanel.classList.remove("hidden");
 }
 
-function renderEvaluation(evaluation) {
+function renderEvaluationScores(scores) {
   evaluationList.innerHTML = "";
-  if (!evaluation) {
-    evaluationPanel.classList.add("hidden");
-    return;
-  }
-  Object.entries(evaluation).forEach(([key, value]) => {
+  Object.entries(scores || {}).forEach(([key, value]) => {
     const term = document.createElement("dt");
     term.textContent = key;
     const definition = document.createElement("dd");
@@ -139,41 +131,54 @@ function renderEvaluation(evaluation) {
   evaluationPanel.classList.remove("hidden");
 }
 
-function renderResult(result, { showTranscript }) {
-  if (showTranscript) {
-    transcriptText.textContent = result.transcript || "";
-    transcriptPanel.classList.remove("hidden");
-  }
-  answerText.textContent = result.answer || "";
-  answerPanel.classList.remove("hidden");
-  renderCitations(result.citations);
-  renderEvaluation(result.evaluation);
+function buildDispatcher() {
+  const dispatcher = createEventDispatcher();
 
-  currentQueryId = result.query_id || null;
-  if (currentQueryId) {
-    renderRatingWidget(ratingContainer, currentQueryId);
-  }
-}
+  dispatcher.on("node_start", (data) => setActiveNode(data.node));
+  dispatcher.on("node_complete", (data) => setCompleteNode(data.node));
 
-async function handleResponse(response) {
-  if (!response.ok) {
-    let detail = `Request failed with status ${response.status}.`;
-    try {
-      const body = await response.json();
-      if (body && body.detail) {
-        detail = Array.isArray(body.detail)
-          ? body.detail.map((item) => item.msg).join(", ")
-          : body.detail;
-      }
-    } catch (parseError) {
-      // fall back to the generic status message
+  dispatcher.on("progress", (data) => setProgress(data.percent));
+
+  dispatcher.on("tool_start", (data) => {
+    setActiveNode("tool_router");
+  });
+
+  dispatcher.on("citation", (data) => appendCitation(data));
+
+  dispatcher.on("token", (data) => {
+    streamingAnswerText.insertBefore(document.createTextNode(data.content), typingCursor);
+  });
+
+  dispatcher.on("evaluation", (data) => {
+    if (data.scores) {
+      renderEvaluationScores(data.scores);
     }
-    throw new Error(detail);
-  }
-  return response.json();
+  });
+
+  dispatcher.on("finished", (data) => {
+    typingCursor.classList.add("hidden");
+    setProgress(100);
+    currentQueryId = data.query_id || null;
+    currentConversationId = data.conversation_id || null;
+    if (data.transcript) {
+      transcriptLine.textContent = `You said: "${data.transcript}"`;
+      transcriptLine.classList.remove("hidden");
+    }
+    answerPanel.classList.remove("hidden");
+    if (currentQueryId) {
+      renderRatingWidget(ratingContainer, currentQueryId);
+    }
+  });
+
+  dispatcher.on("error", (data) => {
+    typingCursor.classList.add("hidden");
+    showError((data && data.detail) || "Something went wrong while streaming.");
+  });
+
+  return dispatcher;
 }
 
-textForm.addEventListener("submit", async (event) => {
+textForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const question = questionInput.value.trim();
   if (!question) {
@@ -182,22 +187,8 @@ textForm.addEventListener("submit", async (event) => {
   }
 
   clearError();
-  hideResults();
-  setLoading(true);
-
-  try {
-    const response = await apiFetch("/query", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question }),
-    });
-    const result = await handleResponse(response);
-    renderResult(result, { showTranscript: false });
-  } catch (error) {
-    showError(error.message || "Something went wrong. Please try again.");
-  } finally {
-    setLoading(false);
-  }
+  resetStreamingUI({ showTranscript: false });
+  streamQuery(question, currentConversationId, buildDispatcher());
 });
 
 voiceForm.addEventListener("submit", async (event) => {
@@ -209,22 +200,6 @@ voiceForm.addEventListener("submit", async (event) => {
   }
 
   clearError();
-  hideResults();
-  setLoading(true);
-
-  try {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const response = await apiFetch("/voice", {
-      method: "POST",
-      body: formData,
-    });
-    const result = await handleResponse(response);
-    renderResult(result, { showTranscript: true });
-  } catch (error) {
-    showError(error.message || "Something went wrong. Please try again.");
-  } finally {
-    setLoading(false);
-  }
+  resetStreamingUI({ showTranscript: true });
+  await streamVoiceQuery(file, currentConversationId, buildDispatcher());
 });

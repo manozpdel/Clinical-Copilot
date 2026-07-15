@@ -6,8 +6,8 @@
  * navigation chrome is handled by router.js.
  */
 
-import { fetchCurrentUser } from "./auth.js";
 import { showToast } from "./router.js";
+import { getCachedUser } from "./storage.js";  // Use cached user data
 
 const loadingEl = document.getElementById("profile-loading");
 const cardEl = document.getElementById("profile-card");
@@ -27,20 +27,23 @@ function formatDate(isoString) {
 
 async function renderProfile() {
   try {
-    const user = await fetchCurrentUser();
-
-    document.getElementById("profile-name").textContent =
-      user.full_name || "—";
-    document.getElementById("profile-email").textContent = user.email;
-    document.getElementById("profile-provider").textContent =
-      user.provider === "google" ? "Google" : "Email & password";
-    document.getElementById("profile-created").textContent = formatDate(
-      user.created_at
-    );
-
-    loadingEl.classList.add("hidden");
-    cardEl.classList.remove("hidden");
+    // Use cached user data (already fetched by guards.js)
+    const user = getCachedUser();
+    
+    if (!user) {
+      // Fallback: fetch if not cached (shouldn't happen normally)
+      console.warn('No cached user found, fetching fresh...');
+      const { fetchCurrentUser } = await import("./auth.js");
+      const freshUser = await fetchCurrentUser();
+      displayUser(freshUser);
+      return;
+    }
+    
+    console.log('Using cached user data for profile');
+    displayUser(user);
+    
   } catch (error) {
+    console.error('Profile error:', error);
     loadingEl.classList.add("hidden");
     errorEl.textContent = error.message || "Unable to load your profile.";
     errorEl.classList.remove("hidden");
@@ -48,4 +51,21 @@ async function renderProfile() {
   }
 }
 
-renderProfile();
+function displayUser(user) {
+  const nameEl = document.getElementById("profile-name");
+  const emailEl = document.getElementById("profile-email");
+  const providerEl = document.getElementById("profile-provider");
+  const createdEl = document.getElementById("profile-created");
+  
+  if (nameEl) nameEl.textContent = user.full_name || "—";
+  if (emailEl) emailEl.textContent = user.email || "No email";
+  if (providerEl) providerEl.textContent = 
+    user.provider === "google" ? "Google" : "Email & password";
+  if (createdEl) createdEl.textContent = formatDate(user.created_at);
+  
+  loadingEl.classList.add("hidden");
+  cardEl.classList.remove("hidden");
+}
+
+// Execute on page load
+document.addEventListener('DOMContentLoaded', renderProfile);

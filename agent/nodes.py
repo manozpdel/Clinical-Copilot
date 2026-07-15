@@ -6,7 +6,9 @@ in `planner.py`, `retriever_node.py`, `generator_node.py`,
 node callables that accept and return `AgentState`. It contains no
 planning, retrieval, generation, evaluation, or tool-execution logic
 of its own. Each node is timed and traced via `observability`, without
-altering any node's business logic.
+altering any node's business logic. `tool_output_to_chunk` is public
+so `streaming.service.StreamingService` can reuse the same
+tool-output-to-chunk adaptation without duplicating it.
 """
 
 import time
@@ -36,12 +38,7 @@ NodeFn = Callable[[AgentState], dict[str, Any]]
 
 
 def make_planner_node() -> NodeFn:
-    """Build the LangGraph node function for the planner stage.
-
-    Returns:
-        NodeFn: A node function that validates and normalizes the
-            question and initializes conversation/request identifiers.
-    """
+    """Build the LangGraph node function for the planner stage."""
 
     def node(state: AgentState) -> dict[str, Any]:
         start = time.monotonic()
@@ -58,14 +55,15 @@ def make_planner_node() -> NodeFn:
     return node
 
 
-def _tool_output_to_chunk(
+def tool_output_to_chunk(
     tool_name: str, patient_id: str, data: dict[str, Any]
 ) -> RetrievedChunk:
     """Adapt a mock tool's structured output into a RetrievedChunk.
 
-    This lets the existing generator and evaluator nodes (which operate
-    on `RetrievedChunk` objects) consume tool output without any
-    modification, avoiding duplicated generation or citation logic.
+    This lets the existing generator/evaluator nodes and the streaming
+    service (which all operate on `RetrievedChunk` objects) consume
+    tool output without any modification, avoiding duplicated
+    generation, citation, or event-building logic.
 
     Args:
         tool_name: Name of the mock tool that produced the data.
@@ -88,19 +86,7 @@ def _tool_output_to_chunk(
 
 
 def make_tool_router_node(tool_router: ToolRouter) -> NodeFn:
-    """Build the LangGraph node function for the tool routing stage.
-
-    Args:
-        tool_router: The tool router used to select and execute mock
-            clinical tools.
-
-    Returns:
-        NodeFn: A node function that selects a tool for the question
-            and, if a mock tool applies, executes it and adapts its
-            output into retrieval-compatible state fields. When no
-            mock tool applies, the question is routed to semantic
-            retrieval instead.
-    """
+    """Build the LangGraph node function for the tool routing stage."""
 
     def node(state: AgentState) -> dict[str, Any]:
         start = time.monotonic()
@@ -122,7 +108,7 @@ def make_tool_router_node(tool_router: ToolRouter) -> NodeFn:
                 "metadata": metadata,
             }
 
-        chunk = _tool_output_to_chunk(
+        chunk = tool_output_to_chunk(
             tool_name=result.tool_name,
             patient_id=result.patient_id or "unknown",
             data=result.output.data,
@@ -150,17 +136,7 @@ def make_retriever_node(
     embedder: EmbeddingModel | None = None,
     retriever: ChromaRetriever | None = None,
 ) -> NodeFn:
-    """Build the LangGraph node function for the retriever stage.
-
-    Args:
-        settings: Active application settings.
-        embedder: Optional embedding model override, for testability.
-        retriever: Optional Chroma retriever override, for testability.
-
-    Returns:
-        NodeFn: A node function that retrieves and formats context for
-            the question.
-    """
+    """Build the LangGraph node function for the retriever stage."""
 
     def node(state: AgentState) -> dict[str, Any]:
         start = time.monotonic()
@@ -185,15 +161,7 @@ def make_retriever_node(
 
 
 def make_generator_node(client: GroqClient) -> NodeFn:
-    """Build the LangGraph node function for the generator stage.
-
-    Args:
-        client: GroqClient used for answer generation.
-
-    Returns:
-        NodeFn: A node function that generates an answer with
-            citations from the retrieved (or tool-derived) context.
-    """
+    """Build the LangGraph node function for the generator stage."""
 
     def node(state: AgentState) -> dict[str, Any]:
         start = time.monotonic()
@@ -218,17 +186,7 @@ def make_generator_node(client: GroqClient) -> NodeFn:
 
 
 def make_evaluator_node(client: GroqClient, enable_evaluation: bool) -> NodeFn:
-    """Build the LangGraph node function for the evaluator stage.
-
-    Args:
-        client: GroqClient used for LLM-as-a-judge faithfulness
-            scoring.
-        enable_evaluation: Whether faithfulness scoring should run.
-
-    Returns:
-        NodeFn: A node function that evaluates the generated answer
-            without altering or halting execution based on the score.
-    """
+    """Build the LangGraph node function for the evaluator stage."""
 
     def node(state: AgentState) -> dict[str, Any]:
         start = time.monotonic()

@@ -153,6 +153,14 @@ class Settings(BaseSettings):
             hallucination/citation/safety reports.
         admin_emails: Email addresses granted access to feedback
             analytics and export endpoints.
+        enable_streaming: Whether the `/stream/*` SSE endpoints are
+            active.
+        stream_heartbeat_interval: Seconds between SSE heartbeat events
+            sent during periods of no other activity.
+        enable_websockets: Whether the `/ws` WebSocket endpoint is
+            active.
+        max_stream_duration: Maximum seconds a single stream may run
+            before being forcibly terminated.
     """
 
     app_name: str = "Clinical Copilot API"
@@ -255,6 +263,11 @@ class Settings(BaseSettings):
     max_feedback_length: int = 2000
     enable_hallucination_reports: bool = True
     admin_emails: tuple[str, ...] = ()
+
+    enable_streaming: bool = True
+    stream_heartbeat_interval: float = 15.0
+    enable_websockets: bool = True
+    max_stream_duration: float = 120.0
 
     model_config = SettingsConfigDict(
         env_file=".env",

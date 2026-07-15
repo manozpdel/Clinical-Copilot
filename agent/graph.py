@@ -9,10 +9,8 @@ Execution flow:
     Planner -> Tool Router -> [Selected Tool | Retriever] -> Generator
     -> Evaluator -> END
 
-The Tool Router conditionally routes to the Retriever node only when
-no mock clinical tool applies to the question; otherwise the tool's
-output has already been adapted into retrieval-compatible state by the
-Tool Router node, and execution proceeds straight to the Generator.
+`build_default_tool_router` is public so `streaming.service` can build
+the same tool router without duplicating registration logic.
 """
 
 from langgraph.graph import END, StateGraph
@@ -39,7 +37,7 @@ from tools.router import ToolRouter
 from tools.wearables import WearablesTool
 
 
-def _build_default_tool_router(settings: Settings) -> ToolRouter:
+def build_default_tool_router(settings: Settings) -> ToolRouter:
     """Build the default tool router with all mock clinical tools registered.
 
     Args:
@@ -64,16 +62,7 @@ def _build_default_tool_router(settings: Settings) -> ToolRouter:
 
 
 def _route_after_tool_selection(state: AgentState) -> str:
-    """Decide which node runs after the tool router.
-
-    Args:
-        state: The current agent state, including `selected_tool`.
-
-    Returns:
-        str: "retriever" when no mock tool applies to the question,
-            otherwise "generator" since the tool router has already
-            populated the context.
-    """
+    """Decide which node runs after the tool router."""
     if state.get("selected_tool") == ToolName.RETRIEVAL.value:
         return "retriever"
     return "generator"
@@ -90,19 +79,12 @@ def build_graph(
     """Build and compile the Clinical Copilot agent graph.
 
     Args:
-        settings: Optional application settings override. Defaults to
-            the cached global settings when not provided.
-        generation_client: Optional GroqClient override for the
-            generator node, for testability.
-        evaluation_client: Optional GroqClient override for the
-            evaluator node, for testability.
-        embedder: Optional embedding model override for the retriever
-            node, for testability.
-        retriever: Optional Chroma retriever override for the
-            retriever node, for testability.
-        tool_router: Optional tool router override, for testability.
-            Defaults to a router with the EHR, Notes, and Wearables
-            mock tools registered.
+        settings: Optional application settings override.
+        generation_client: Optional GroqClient override for generation.
+        evaluation_client: Optional GroqClient override for evaluation.
+        embedder: Optional embedding model override.
+        retriever: Optional Chroma retriever override.
+        tool_router: Optional tool router override.
 
     Returns:
         CompiledStateGraph: The compiled, executable agent graph.
@@ -114,12 +96,15 @@ def build_graph(
     active_evaluation_client = evaluation_client or build_faithfulness_client(
         active_settings
     )
-    active_tool_router = tool_router or _build_default_tool_router(active_settings)
+    active_tool_router = tool_router or build_default_tool_router(active_settings)
 
     graph = StateGraph(AgentState)
 
     graph.add_node("planner", make_planner_node())
-    graph.add_node("tool_router", make_tool_router_node(active_tool_router))
+    graph.add_node(
+        "tool_router",
+        make_tool_router_node(active_tool_router),
+    )
     graph.add_node(
         "retriever",
         make_retriever_node(active_settings, embedder=embedder, retriever=retriever),

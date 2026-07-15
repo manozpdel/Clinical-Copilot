@@ -1,17 +1,18 @@
 """Groq communication for the Clinical Copilot RAG pipeline.
 
 This module is responsible ONLY for communicating with the Groq chat
-completion API, including client-side rate limiting and retry
-handling. It contains no prompt construction, retrieval, or citation
-logic. A single reusable GroqClient can be instantiated multiple times
-with different API keys/models to give each pipeline role (generation,
-faithfulness judging, relevance judging) its own independent quota.
-LLM call latency is recorded via `observability.metrics` and traced via
+completion API, including client-side rate limiting, retry handling,
+and (for streaming callers) incremental token generation. It contains
+no prompt construction, retrieval, or citation logic. A single reusable
+GroqClient can be instantiated multiple times with different API
+keys/models to give each pipeline role its own independent quota. LLM
+call latency is recorded via `observability.metrics` and traced via
 `observability.tracing`, without altering the client's behavior.
 """
 
 import random
 import time
+from collections.abc import Iterator
 
 from groq import APIStatusError, RateLimitError
 from langchain_groq import ChatGroq
@@ -26,15 +27,7 @@ logger = get_logger(__name__)
 
 
 def _extract_retry_after_seconds(error: APIStatusError) -> float | None:
-    """Extract a server-provided retry delay from a rate limit error.
-
-    Args:
-        error: The API status error raised by the Groq client.
-
-    Returns:
-        float | None: Seconds to wait before retrying, or None if
-            unavailable.
-    """
+    """Extract a server-provided retry delay from a rate limit error."""
     response = getattr(error, "response", None)
     if response is None:
         return None
@@ -78,25 +71,13 @@ class GroqClient:
 
     @property
     def model_name(self) -> str:
-        """Return the model name this client instance uses.
-
-        Returns:
-            str: The model name in use.
-        """
+        """Return the model name this client instance uses."""
         return self._model
 
     def _compute_backoff_delay(
         self, attempt: int, retry_after: float | None
     ) -> float:
-        """Compute the delay to wait before the next retry attempt.
-
-        Args:
-            attempt: 0-indexed count of retries already performed.
-            retry_after: Server-provided retry delay, if any.
-
-        Returns:
-            float: Delay in seconds, capped at the configured maximum.
-        """
+        """Compute the delay to wait before the next retry attempt."""
         if retry_after is not None:
             base_delay = retry_after
         else:
@@ -157,32 +138,50 @@ class GroqClient:
 
         raise RuntimeError("Unreachable: retry loop exited without returning.")
 
+    def generate_stream(self, system_prompt: str, user_prompt: str) -> Iterator[str]:
+        """Generate a chat completion, yielding incremental text chunks.
+
+        Unlike `generate`, this makes a single attempt with no
+        rate-limit retry loop: a mid-stream failure cannot be cleanly
+        resumed, so callers (see `streaming.service.StreamingService`)
+        are expected to surface any raised exception as a stream
+        `error` event rather than retrying transparently.
+
+        Args:
+            system_prompt: The system-level instructions for the model.
+            user_prompt: The user-facing prompt content.
+
+        Yields:
+            str: Successive non-empty text chunks as they arrive.
+
+        Raises:
+            RateLimitError: If the request is rate limited.
+        """
+        self._rate_limiter.acquire()
+        logger.info("llm_stream_started", model=self._model)
+        call_start = time.monotonic()
+
+        with trace_span("llm.generate_stream", model=self._model):
+            for chunk in self._llm.stream(
+                [("system", system_prompt), ("human", user_prompt)]
+            ):
+                piece = chunk.content
+                if piece:
+                    yield piece
+
+        record_llm_latency(self._model, time.monotonic() - call_start)
+        logger.info("llm_stream_completed", model=self._model)
+
 
 def build_generation_client(settings: Settings) -> GroqClient:
-    """Build the GroqClient used for answer generation.
-
-    Args:
-        settings: Active application settings.
-
-    Returns:
-        GroqClient: A client configured with the generation API key
-            and model.
-    """
+    """Build the GroqClient used for answer generation."""
     return GroqClient(
         settings, api_key=settings.generation_api_key, model=settings.generation_model
     )
 
 
 def build_faithfulness_client(settings: Settings) -> GroqClient:
-    """Build the GroqClient used for faithfulness judging.
-
-    Args:
-        settings: Active application settings.
-
-    Returns:
-        GroqClient: A client configured with the faithfulness API key
-            and model.
-    """
+    """Build the GroqClient used for faithfulness judging."""
     return GroqClient(
         settings,
         api_key=settings.faithfulness_api_key,
@@ -191,15 +190,7 @@ def build_faithfulness_client(settings: Settings) -> GroqClient:
 
 
 def build_relevance_client(settings: Settings) -> GroqClient:
-    """Build the GroqClient used for answer relevance judging.
-
-    Args:
-        settings: Active application settings.
-
-    Returns:
-        GroqClient: A client configured with the relevance API key and
-            model.
-    """
+    """Build the GroqClient used for answer relevance judging."""
     return GroqClient(
         settings, api_key=settings.relevance_api_key, model=settings.relevance_model
     )

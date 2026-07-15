@@ -43,25 +43,55 @@ export async function submitThumbsFeedback(queryId, isHelpful) {
  */
 export function openFeedbackModal(queryId) {
   activeQueryId = queryId;
-  document.getElementById("feedback-comment-input").value = "";
-  document.getElementById("feedback-report-reason").value = "";
-  document.getElementById("feedback-modal").classList.remove("hidden");
+  const commentInput = document.getElementById("feedback-comment-input");
+  const reasonSelect = document.getElementById("feedback-report-reason");
+  const modal = document.getElementById("feedback-modal");
+  
+  if (!modal) {
+    console.error("Feedback modal not found in DOM");
+    showToast("Feedback system unavailable. Please try again.", "error");
+    return;
+  }
+  
+  if (commentInput) commentInput.value = "";
+  if (reasonSelect) reasonSelect.value = "";
+  modal.classList.remove("hidden");
 }
 
+/**
+ * Close the feedback modal.
+ */
 export function closeFeedbackModal() {
-  document.getElementById("feedback-modal").classList.add("hidden");
+  const modal = document.getElementById("feedback-modal");
+  if (modal) {
+    modal.classList.add("hidden");
+  }
   activeQueryId = null;
 }
 
+/**
+ * Submit the feedback from the modal.
+ */
 export async function submitFeedbackModal() {
   if (!activeQueryId) {
+    showToast("No active query to submit feedback for.", "error");
     return;
   }
 
-  const comment = document.getElementById("feedback-comment-input").value.trim();
-  const reason = document.getElementById("feedback-report-reason").value;
+  const commentInput = document.getElementById("feedback-comment-input");
+  const reasonSelect = document.getElementById("feedback-report-reason");
+  
+  if (!commentInput || !reasonSelect) {
+    showToast("Feedback form not available.", "error");
+    return;
+  }
+
+  const comment = commentInput.value.trim();
+  const reason = reasonSelect.value;
 
   try {
+    let hasError = false;
+
     if (comment) {
       const response = await apiFetch("/../feedback", {
         method: "POST",
@@ -91,13 +121,84 @@ export async function submitFeedbackModal() {
   }
 }
 
-// Event listeners setup
-const cancelButton = document.getElementById("feedback-modal-cancel");
-const submitButton = document.getElementById("feedback-modal-submit");
+/**
+ * Setup event listeners for the feedback modal.
+ * This function should be called after the DOM is ready.
+ */
+export function setupFeedbackEventListeners() {
+  const cancelButton = document.getElementById("feedback-modal-cancel");
+  const submitButton = document.getElementById("feedback-modal-submit");
 
-if (cancelButton) {
-  cancelButton.addEventListener("click", closeFeedbackModal);
+  if (cancelButton) {
+    // Remove any existing listeners to avoid duplicates
+    cancelButton.removeEventListener("click", closeFeedbackModal);
+    cancelButton.addEventListener("click", closeFeedbackModal);
+  } else {
+    console.warn("Feedback modal cancel button not found in DOM");
+  }
+
+  if (submitButton) {
+    // Remove any existing listeners to avoid duplicates
+    submitButton.removeEventListener("click", submitFeedbackModal);
+    submitButton.addEventListener("click", submitFeedbackModal);
+  } else {
+    console.warn("Feedback modal submit button not found in DOM");
+  }
 }
-if (submitButton) {
-  submitButton.addEventListener("click", submitFeedbackModal);
+
+// ✅ FIX: Wait for DOM to be fully loaded before attaching event listeners
+if (document.readyState === "loading") {
+  // Document is still loading, wait for DOMContentLoaded
+  document.addEventListener("DOMContentLoaded", setupFeedbackEventListeners);
+} else {
+  // Document is already loaded, setup immediately
+  setupFeedbackEventListeners();
 }
+
+// ✅ FIX: Also handle dynamic modal injection (if the modal is added later)
+// Use MutationObserver to detect when modal is added to DOM
+if (window.MutationObserver) {
+  const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      mutation.addedNodes.forEach(function(node) {
+        // Check if the added node is the feedback modal or contains it
+        if (node.nodeType === 1) { // Element node
+          if (node.id === "feedback-modal" || node.querySelector("#feedback-modal")) {
+            setupFeedbackEventListeners();
+          }
+        }
+      });
+    });
+  });
+
+  // Start observing once the document body exists
+  if (document.body) {
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  } else {
+    document.addEventListener("DOMContentLoaded", function() {
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+    });
+  }
+}
+
+// Export a cleanup function in case the module is hot-reloaded
+export function cleanupFeedbackEventListeners() {
+  const cancelButton = document.getElementById("feedback-modal-cancel");
+  const submitButton = document.getElementById("feedback-modal-submit");
+  
+  if (cancelButton) {
+    cancelButton.removeEventListener("click", closeFeedbackModal);
+  }
+  if (submitButton) {
+    submitButton.removeEventListener("click", submitFeedbackModal);
+  }
+}
+
+// For debugging - log when module is loaded
+console.log("Feedback module loaded successfully");
