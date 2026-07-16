@@ -30,14 +30,10 @@ def node_complete_event(node: str, duration_seconds: float) -> StreamEvent:
 
 def tool_start_event(tool_name: str, patient_id: str | None) -> StreamEvent:
     """Build a `tool_start` event for a mock clinical tool beginning execution."""
-    return StreamEvent(
-        event="tool_start", data={"tool": tool_name, "patient_id": patient_id}
-    )
+    return StreamEvent(event="tool_start", data={"tool": tool_name, "patient_id": patient_id})
 
 
-def tool_complete_event(
-    tool_name: str, success: bool, duration_seconds: float
-) -> StreamEvent:
+def tool_complete_event(tool_name: str, success: bool, duration_seconds: float) -> StreamEvent:
     """Build a `tool_complete` event for a finished tool execution."""
     return StreamEvent(
         event="tool_complete",

@@ -4,6 +4,7 @@ This module is responsible ONLY for validating authentication payloads
 and shaping authentication responses. It contains no routing, hashing,
 JWT, or OAuth logic.
 """
+
 from datetime import datetime
 
 from pydantic import BaseModel, EmailStr, Field

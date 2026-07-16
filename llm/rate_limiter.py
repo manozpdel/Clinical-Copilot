@@ -44,10 +44,7 @@ class RateLimiter:
                 now = time.monotonic()
                 window_start = now - self._period_seconds
 
-                while (
-                    self._request_timestamps
-                    and self._request_timestamps[0] < window_start
-                ):
+                while self._request_timestamps and self._request_timestamps[0] < window_start:
                     self._request_timestamps.popleft()
 
                 if len(self._request_timestamps) < self._max_requests:

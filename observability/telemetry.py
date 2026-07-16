@@ -15,9 +15,7 @@ from observability.tracing import init_tracing, instrument_fastapi, instrument_s
 logger = get_logger(__name__)
 
 
-def configure_observability(
-    settings: Settings, app: Any = None, engine: Any = None
-) -> None:
+def configure_observability(settings: Settings, app: Any = None, engine: Any = None) -> None:
     """Initialize tracing, FastAPI/SQLAlchemy instrumentation, and LangSmith.
 
     Args:

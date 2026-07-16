@@ -69,8 +69,6 @@ class ConversationMemory:
                 None if no turns are stored (or none match `role`).
         """
         candidates = (
-            self._turns
-            if role is None
-            else [turn for turn in self._turns if turn.role == role]
+            self._turns if role is None else [turn for turn in self._turns if turn.role == role]
         )
         return candidates[-1] if candidates else None

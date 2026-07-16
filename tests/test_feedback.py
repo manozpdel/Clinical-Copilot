@@ -95,7 +95,9 @@ async def test_submit_feedback_rejects_overlong_comment(db_session, seeded) -> N
     user, _, query = seeded
     service = FeedbackService(db_session, Settings(max_feedback_length=10))
 
-    with pytest.raises(FeedbackValidationError, match="Feedback text exceeds the maximum length of 10 characters."):
+    with pytest.raises(
+        FeedbackValidationError, match="Feedback text exceeds the maximum length of 10 characters."
+    ):
         await service.submit_feedback(user.id, str(query.id), True, "x" * 20)
 
 

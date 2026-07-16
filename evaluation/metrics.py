@@ -20,9 +20,7 @@ def recall_at_k(retrieved_chunk_ids: list[str], relevant_chunk_id: str) -> float
     return 1.0 if relevant_chunk_id in retrieved_chunk_ids else 0.0
 
 
-def mean_reciprocal_rank(
-    retrieved_chunk_ids: list[str], relevant_chunk_id: str
-) -> float:
+def mean_reciprocal_rank(retrieved_chunk_ids: list[str], relevant_chunk_id: str) -> float:
     """Compute the reciprocal rank of the relevant chunk in the results.
 
     Args:

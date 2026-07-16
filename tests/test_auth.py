@@ -78,9 +78,7 @@ async def test_login_rejects_unknown_email(auth_service) -> None:
 
 async def test_refresh_issues_new_token_pair(auth_service) -> None:
     """A valid refresh token should yield a new access/refresh token pair."""
-    _, _, refresh_token = await auth_service.register(
-        "erin@example.com", "supersecret1", "Erin"
-    )
+    _, _, refresh_token = await auth_service.register("erin@example.com", "supersecret1", "Erin")
 
     user, new_access_token, new_refresh_token = await auth_service.refresh(refresh_token)
 
@@ -122,7 +120,7 @@ def test_get_me_returns_profile_for_authenticated_user() -> None:
         email="profile-test@example.com",
         full_name="Profile Tester",
         provider="local",
-        created_at=datetime.now(timezone.utc)  # Add this
+        created_at=datetime.now(timezone.utc),  # Add this
     )
 
     app.dependency_overrides[get_current_user] = lambda: fake_user

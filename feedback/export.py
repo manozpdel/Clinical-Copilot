@@ -42,9 +42,7 @@ async def gather_export_rows(db: AsyncSession) -> list[dict]:
             {
                 "feedback_id": str(record.id),
                 "user_email": record.user.email if record.user else "",
-                "conversation_id": (
-                    str(record.query.conversation_id) if record.query else ""
-                ),
+                "conversation_id": (str(record.query.conversation_id) if record.query else ""),
                 "query_id": str(record.query_id),
                 "is_helpful": record.is_helpful,
                 "comment": record.comment or "",

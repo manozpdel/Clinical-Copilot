@@ -17,10 +17,7 @@ def format_citation(chunk: RetrievedChunk) -> str:
         str: A formatted citation string, e.g. "[Citation: Patient
             patient_007, Chunk patient_007_chunk_003, patient_007.txt]".
     """
-    return (
-        f"[Citation: Patient {chunk.patient_id}, "
-        f"Chunk {chunk.chunk_id}, {chunk.source_file}]"
-    )
+    return f"[Citation: Patient {chunk.patient_id}, Chunk {chunk.chunk_id}, {chunk.source_file}]"
 
 
 def extract_citations(chunks: list[RetrievedChunk]) -> list[str]:

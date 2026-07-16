@@ -31,9 +31,7 @@ def generate_response(
             the prompt bundle used to generate the answer.
     """
     prompt = build_prompt(question=question, chunks=chunks)
-    raw_answer = client.generate(
-        system_prompt=prompt.system_prompt, user_prompt=prompt.user_prompt
-    )
+    raw_answer = client.generate(system_prompt=prompt.system_prompt, user_prompt=prompt.user_prompt)
 
     citations = extract_citations(chunks)
     final_answer = append_citations(raw_answer, chunks)

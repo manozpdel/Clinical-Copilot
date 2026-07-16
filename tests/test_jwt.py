@@ -50,9 +50,7 @@ def test_decode_rejects_wrong_token_type() -> None:
 
 def test_decode_rejects_expired_token() -> None:
     """A token with a negative lifetime should be rejected as expired."""
-    settings = Settings(
-        jwt_secret_key="test-secret-key", access_token_expire_minutes=-1
-    )
+    settings = Settings(jwt_secret_key="test-secret-key", access_token_expire_minutes=-1)
     token = create_access_token(uuid.uuid4(), settings)
 
     with pytest.raises(TokenError):

@@ -49,9 +49,7 @@ def get_voice_service(settings: Settings = Depends(get_settings)) -> VoiceServic
     if _voice_service_singleton is None:
         graph = build_graph(settings)
         transcriber = GroqWhisperTranscriber(settings)
-        pipeline = VoicePipeline(
-            settings=settings, transcriber=transcriber, graph=graph
-        )
+        pipeline = VoicePipeline(settings=settings, transcriber=transcriber, graph=graph)
         _voice_service_singleton = VoiceService(pipeline)
     return _voice_service_singleton
 
@@ -100,9 +98,7 @@ async def submit_voice(
             exceeded, or 422 if audio validation or transcription
             fails.
     """
-    bind_request_context(
-        user_id=str(current_user.id), endpoint="/api/voice", component="api"
-    )
+    bind_request_context(user_id=str(current_user.id), endpoint="/api/voice", component="api")
 
     try:
         await check_quota_before_request(db, current_user.id, settings)
@@ -114,9 +110,7 @@ async def submit_voice(
     audio_bytes = await file.read()
 
     if len(audio_bytes) > settings.max_upload_size:
-        raise HTTPException(
-            status_code=413, detail="Audio file exceeds maximum upload size."
-        )
+        raise HTTPException(status_code=413, detail="Audio file exceeds maximum upload size.")
 
     start_time = time.monotonic()
     try:

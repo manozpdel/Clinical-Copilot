@@ -39,9 +39,7 @@ def _create_token(
         "iat": now,
         "exp": now + expires_delta,
     }
-    return jwt.encode(
-        payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm
-    )
+    return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
 
 def create_access_token(user_id: UUID, settings: Settings) -> str:
@@ -98,9 +96,7 @@ def decode_token(token: str, settings: Settings, expected_type: str) -> str:
             wrong type, or missing a subject.
     """
     try:
-        payload = jwt.decode(
-            token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm]
-        )
+        payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
     except JWTError as error:
         raise TokenError("Invalid or expired token.") from error
 

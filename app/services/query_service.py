@@ -30,9 +30,7 @@ class QueryService:
         """
         self._graph = graph
 
-    def run_query(
-        self, question: str, conversation_id: str | None = None
-    ) -> dict[str, Any]:
+    def run_query(self, question: str, conversation_id: str | None = None) -> dict[str, Any]:
         """Run a question through the agent graph and time the execution.
 
         Args:

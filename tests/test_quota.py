@@ -57,7 +57,9 @@ async def test_quota_rejects_when_daily_limit_reached(db_session, test_user) -> 
 
 async def test_quota_rejects_when_monthly_cost_limit_reached(db_session, test_user) -> None:
     """A user at the monthly cost limit should be rejected."""
-    settings = Settings(daily_request_limit=100, monthly_token_limit=1_000_000, monthly_cost_limit=1.0)
+    settings = Settings(
+        daily_request_limit=100, monthly_token_limit=1_000_000, monthly_cost_limit=1.0
+    )
 
     quota = await get_or_create_quota(db_session, test_user.id)
     await increment_quota_usage(db_session, quota, tokens=10, cost_usd=1.0)

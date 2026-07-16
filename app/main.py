@@ -76,9 +76,7 @@ app.add_middleware(RequestSizeLimitMiddleware, settings=settings)
 app.add_middleware(AuthContextMiddleware, settings=settings)
 app.add_middleware(RequestIDMiddleware)
 
-app.add_middleware(
-    TrustedHostMiddleware, allowed_hosts=list(settings.trusted_hosts)
-)
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=list(settings.trusted_hosts))
 app.add_middleware(
     CORSMiddleware,
     allow_origins=list(settings.trusted_hosts),

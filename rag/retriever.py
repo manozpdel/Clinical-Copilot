@@ -28,9 +28,7 @@ class ChromaRetriever:
         """
         self._settings = settings
         self._client = chromadb.PersistentClient(path=str(settings.chroma_path))
-        self._collection = self._client.get_or_create_collection(
-            name=settings.collection_name
-        )
+        self._collection = self._client.get_or_create_collection(name=settings.collection_name)
 
     @property
     def collection_name(self) -> str:

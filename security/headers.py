@@ -66,9 +66,7 @@ class SecurityHeadersMiddleware:
                 headers[b"x-frame-options"] = b"DENY"
                 headers[b"referrer-policy"] = b"strict-origin-when-cross-origin"
                 headers[b"content-security-policy"] = self._csp_policy.encode()
-                headers[b"strict-transport-security"] = (
-                    b"max-age=63072000; includeSubDomains"
-                )
+                headers[b"strict-transport-security"] = b"max-age=63072000; includeSubDomains"
 
                 # Convert back to list of tuples for ASGI spec
                 message["headers"] = list(headers.items())

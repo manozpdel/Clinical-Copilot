@@ -72,7 +72,9 @@ def test_full_query_and_feedback_flow(db_session, test_user) -> None:
 
     client = TestClient(app)
 
-    query_response = client.post("/api/query", json={"question": "What medications is patient_001 taking?"})
+    query_response = client.post(
+        "/api/query", json={"question": "What medications is patient_001 taking?"}
+    )
     assert query_response.status_code == 200
     query_id = query_response.json()["query_id"]
 

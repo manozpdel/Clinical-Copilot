@@ -66,9 +66,7 @@ class ConversationCost(BaseModel):
     request_count: int
 
 
-async def _summarize_period(
-    db: AsyncSession, start: datetime, end: datetime
-) -> UsageSummary:
+async def _summarize_period(db: AsyncSession, start: datetime, end: datetime) -> UsageSummary:
     """Build a UsageSummary for an arbitrary time window.
 
     Args:
@@ -181,9 +179,7 @@ async def most_active_users(db: AsyncSession, limit: int = 10) -> list[UserActiv
     ]
 
 
-async def most_expensive_conversations(
-    db: AsyncSession, limit: int = 10
-) -> list[ConversationCost]:
+async def most_expensive_conversations(db: AsyncSession, limit: int = 10) -> list[ConversationCost]:
     """List the most expensive conversations by total estimated cost.
 
     Args:
@@ -241,7 +237,5 @@ async def average_tokens_per_request(db: AsyncSession) -> float:
         float: The average token count per request, or 0.0 if no usage
             has been recorded.
     """
-    result = await db.execute(
-        select(func.coalesce(func.avg(UsageLog.total_tokens), 0.0))
-    )
+    result = await db.execute(select(func.coalesce(func.avg(UsageLog.total_tokens), 0.0)))
     return float(result.scalar_one())

@@ -46,9 +46,7 @@ async def verify_google_id_token(id_token: str, settings: Settings) -> GooglePro
             not issued for this application, or no email is present.
     """
     async with httpx.AsyncClient(timeout=10.0) as client:
-        response = await client.get(
-            _GOOGLE_TOKENINFO_URL, params={"id_token": id_token}
-        )
+        response = await client.get(_GOOGLE_TOKENINFO_URL, params={"id_token": id_token})
 
     if response.status_code != 200:
         raise GoogleOAuthError("Google rejected the provided ID token.")

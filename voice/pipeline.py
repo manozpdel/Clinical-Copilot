@@ -53,9 +53,7 @@ class VoicePipeline:
             max_history=settings.max_conversation_history
         )
 
-    def run(
-        self, audio_path: Path, conversation_id: str | None = None
-    ) -> VoiceChatResult:
+    def run(self, audio_path: Path, conversation_id: str | None = None) -> VoiceChatResult:
         """Run one full voice turn: transcribe audio and query the agent.
 
         Args:
@@ -76,9 +74,7 @@ class VoicePipeline:
         session_id = conversation_id or self._sessions.create_session()
         memory = self._sessions.get_memory(session_id)
 
-        audio_bytes = validate_audio_file(
-            audio_path, self._settings.supported_audio_formats
-        )
+        audio_bytes = validate_audio_file(audio_path, self._settings.supported_audio_formats)
         transcription = transcribe_file(audio_path, self._transcriber, audio_bytes)
         logger.info("voice_transcription_complete", conversation_id=session_id)
 

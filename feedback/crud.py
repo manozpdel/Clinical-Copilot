@@ -86,9 +86,7 @@ async def upsert_feedback(
         await db.refresh(existing)
         return existing
 
-    feedback = Feedback(
-        user_id=user_id, query_id=query_id, is_helpful=is_helpful, comment=comment
-    )
+    feedback = Feedback(user_id=user_id, query_id=query_id, is_helpful=is_helpful, comment=comment)
     db.add(feedback)
     await db.commit()
     await db.refresh(feedback)
@@ -260,9 +258,7 @@ async def create_hallucination_report(
     Returns:
         HallucinationReport: The newly created report.
     """
-    report = HallucinationReport(
-        user_id=user_id, query_id=query_id, reason=reason, detail=detail
-    )
+    report = HallucinationReport(user_id=user_id, query_id=query_id, reason=reason, detail=detail)
     db.add(report)
     await db.commit()
     await db.refresh(report)
@@ -305,9 +301,7 @@ async def get_history_for_user(
     return list(result.scalars().all())
 
 
-async def list_feedback_created_since(
-    db: AsyncSession, since: datetime
-) -> list[Feedback]:
+async def list_feedback_created_since(db: AsyncSession, since: datetime) -> list[Feedback]:
     """List feedback created on or after a given timestamp.
 
     Args:

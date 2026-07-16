@@ -56,9 +56,7 @@ class VoiceService:
         with tempfile.NamedTemporaryFile(suffix=suffix) as temp_file:
             temp_file.write(audio_bytes)
             temp_file.flush()
-            result = self._pipeline.run(
-                Path(temp_file.name), conversation_id=conversation_id
-            )
+            result = self._pipeline.run(Path(temp_file.name), conversation_id=conversation_id)
 
         logger.info(
             "voice_service_completed",

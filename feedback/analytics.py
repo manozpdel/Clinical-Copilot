@@ -44,9 +44,7 @@ async def compute_analytics(db: AsyncSession) -> AnalyticsResponse:
     positive_percent = (positive_count / total_thumbs * 100) if total_thumbs else 0.0
     negative_percent = (negative_count / total_thumbs * 100) if total_thumbs else 0.0
 
-    average_rating = (
-        sum(rating.stars for rating in ratings) / len(ratings) if ratings else None
-    )
+    average_rating = sum(rating.stars for rating in ratings) / len(ratings) if ratings else None
 
     reason_counts = Counter(report.reason for report in reports)
     most_common_issues = [reason for reason, _count in reason_counts.most_common()]
@@ -58,10 +56,7 @@ async def compute_analytics(db: AsyncSession) -> AnalyticsResponse:
         day_key = record.created_at.date().isoformat()
         daily_counts[day_key] += 1
 
-    daily_trend = [
-        {"date": day, "count": count}
-        for day, count in sorted(daily_counts.items())
-    ]
+    daily_trend = [{"date": day, "count": count} for day, count in sorted(daily_counts.items())]
 
     return AnalyticsResponse(
         average_rating=average_rating,

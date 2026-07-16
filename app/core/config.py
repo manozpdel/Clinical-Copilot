@@ -242,9 +242,7 @@ class Settings(BaseSettings):
     static_files_path: Path = Path("frontend")
     enable_frontend: bool = True
 
-    database_url: str = (
-        "postgresql+asyncpg://postgres:postgres@localhost:5432/clinical_copilot"
-    )
+    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/clinical_copilot"
     jwt_secret_key: str = ""
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 30

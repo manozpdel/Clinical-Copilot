@@ -28,6 +28,7 @@ class HealthService:
         """
         self._settings = settings
         from sqlalchemy.ext.asyncio import create_async_engine
+
         self._engine = create_async_engine(
             settings.database_url,
             connect_args={"connect_timeout": 5},
@@ -128,9 +129,7 @@ class HealthService:
         usage = shutil.disk_usage(".")
         percent_free = (usage.free / usage.total) * 100
         status = "healthy" if percent_free >= 10.0 else "degraded"
-        return ComponentHealth(
-            name="disk", status=status, detail=f"{percent_free:.1f}% free."
-        )
+        return ComponentHealth(name="disk", status=status, detail=f"{percent_free:.1f}% free.")
 
     def check_memory(self) -> ComponentHealth:
         """Report the process's approximate peak memory usage.

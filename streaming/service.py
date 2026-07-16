@@ -109,9 +109,7 @@ class StreamingService:
         iterator = self._generation_client.generate_stream(system_prompt, user_prompt)
 
         while True:
-            chunk = await loop.run_in_executor(
-                None, lambda: next(iterator, _STREAM_SENTINEL)
-            )
+            chunk = await loop.run_in_executor(None, lambda: next(iterator, _STREAM_SENTINEL))
             if chunk is _STREAM_SENTINEL:
                 break
             yield chunk
@@ -140,9 +138,7 @@ class StreamingService:
             StreamEvent: Every event produced over the course of the
                 pipeline run, ending in either `finished` or `error`.
         """
-        bind_request_context(
-            user_id=str(user_id), endpoint="/stream/query", component="streaming"
-        )
+        bind_request_context(user_id=str(user_id), endpoint="/stream/query", component="streaming")
         tracker = ProgressTracker()
         pipeline_start = time.monotonic()
 

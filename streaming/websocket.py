@@ -78,14 +78,10 @@ async def websocket_endpoint(
             conversation_id = payload.get("conversation_id")
 
             if not question.strip():
-                await websocket.send_text(
-                    to_json(error_event("question must not be empty."))
-                )
+                await websocket.send_text(to_json(error_event("question must not be empty.")))
                 continue
 
-            async for event in service.stream_query(
-                question, conversation_id, current_user.id, db
-            ):
+            async for event in service.stream_query(question, conversation_id, current_user.id, db):
                 await websocket.send_text(to_json(event))
 
     except WebSocketDisconnect:

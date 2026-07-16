@@ -32,9 +32,7 @@ def test_calculate_cost_falls_back_for_unknown_model() -> None:
 
 def test_estimate_usage_returns_consistent_totals() -> None:
     """total_tokens should equal prompt_tokens + completion_tokens."""
-    usage = estimate_usage(
-        "llama-3.1-8b-instant", "What medications?", "Metformin 500mg."
-    )
+    usage = estimate_usage("llama-3.1-8b-instant", "What medications?", "Metformin 500mg.")
 
     assert usage.total_tokens == usage.prompt_tokens + usage.completion_tokens
     assert usage.cost_usd >= 0
