@@ -51,9 +51,7 @@ class SessionManager:
                 not previously known.
         """
         if session_id not in self._sessions:
-            self._sessions[session_id] = ConversationMemory(
-                max_history=self._max_history
-            )
+            self._sessions[session_id] = ConversationMemory(max_history=self._max_history)
         return self._sessions[session_id]
 
     def reset_session(self, session_id: str) -> None:

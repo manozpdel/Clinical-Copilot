@@ -65,9 +65,7 @@ class FeedbackService:
                 f"{self._settings.max_feedback_length} characters."
             )
 
-    async def _resolve_owned_query_id(
-        self, user_id: uuid.UUID, query_id_str: str
-    ) -> uuid.UUID:
+    async def _resolve_owned_query_id(self, user_id: uuid.UUID, query_id_str: str) -> uuid.UUID:
         """Parse and verify ownership of a query ID string.
 
         Args:
@@ -88,9 +86,7 @@ class FeedbackService:
 
         query = await crud.get_query_owned_by_user(self._db, query_id, user_id)
         if query is None:
-            raise QueryNotFoundError(
-                f"Query '{query_id_str}' was not found for this user."
-            )
+            raise QueryNotFoundError(f"Query '{query_id_str}' was not found for this user.")
         return query_id
 
     async def submit_feedback(
@@ -150,9 +146,7 @@ class FeedbackService:
         try:
             feedback_id = uuid.UUID(feedback_id_str)
         except ValueError as error:
-            raise FeedbackNotFoundError(
-                f"Invalid feedback id: '{feedback_id_str}'."
-            ) from error
+            raise FeedbackNotFoundError(f"Invalid feedback id: '{feedback_id_str}'.") from error
 
         feedback = await crud.get_feedback_by_id(self._db, feedback_id)
         if feedback is None:
@@ -178,9 +172,7 @@ class FeedbackService:
         try:
             feedback_id = uuid.UUID(feedback_id_str)
         except ValueError as error:
-            raise FeedbackNotFoundError(
-                f"Invalid feedback id: '{feedback_id_str}'."
-            ) from error
+            raise FeedbackNotFoundError(f"Invalid feedback id: '{feedback_id_str}'.") from error
 
         feedback = await crud.get_feedback_by_id(self._db, feedback_id)
         if feedback is None:
@@ -190,9 +182,7 @@ class FeedbackService:
 
         await crud.delete_feedback_record(self._db, feedback)
 
-    async def submit_rating(
-        self, user_id: uuid.UUID, query_id_str: str, stars: int
-    ) -> Rating:
+    async def submit_rating(self, user_id: uuid.UUID, query_id_str: str, stars: int) -> Rating:
         """Submit (or update) a 1-5 star rating for a response.
 
         Args:
@@ -239,9 +229,7 @@ class FeedbackService:
         """
         self._validate_comment_length(detail)
         query_id = await self._resolve_owned_query_id(user_id, query_id_str)
-        return await crud.create_hallucination_report(
-            self._db, user_id, query_id, reason, detail
-        )
+        return await crud.create_hallucination_report(self._db, user_id, query_id, reason, detail)
 
     async def get_user_feedback_history(
         self, user_id: uuid.UUID, limit: int = 100

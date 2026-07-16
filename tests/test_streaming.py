@@ -97,9 +97,7 @@ async def test_stream_query_emits_expected_event_sequence(
 
     registry = ToolRegistry()
     registry.register(EHRTool())
-    tool_router = ToolRouter(
-        registry=registry, known_patient_ids=set(MOCK_PATIENTS.keys())
-    )
+    tool_router = ToolRouter(registry=registry, known_patient_ids=set(MOCK_PATIENTS.keys()))
 
     service = StreamingService(
         settings=settings,
@@ -138,9 +136,7 @@ async def test_stream_query_finished_event_contains_full_answer(
 
     registry = ToolRegistry()
     registry.register(EHRTool())
-    tool_router = ToolRouter(
-        registry=registry, known_patient_ids=set(MOCK_PATIENTS.keys())
-    )
+    tool_router = ToolRouter(registry=registry, known_patient_ids=set(MOCK_PATIENTS.keys()))
 
     service = StreamingService(
         settings=settings,

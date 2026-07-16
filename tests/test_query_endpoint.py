@@ -19,9 +19,7 @@ from database.session import build_engine, build_session_factory
 class _FakeQueryService:
     """A fake QueryService returning a canned result without network calls."""
 
-    def run_query(
-        self, question: str, conversation_id: str | None = None
-    ) -> dict[str, Any]:
+    def run_query(self, question: str, conversation_id: str | None = None) -> dict[str, Any]:
         """Return a canned query result, ignoring the actual question.
 
         Args:

@@ -33,9 +33,7 @@ async def get_current_quota(db: AsyncSession, user_id: UUID) -> Quota:
     return await reset_quota_periods(db, quota)
 
 
-async def check_quota_before_request(
-    db: AsyncSession, user_id: UUID, settings: Settings
-) -> Quota:
+async def check_quota_before_request(db: AsyncSession, user_id: UUID, settings: Settings) -> Quota:
     """Verify a user has remaining quota before an agent call is made.
 
     Checks the daily request count, monthly token count, and monthly

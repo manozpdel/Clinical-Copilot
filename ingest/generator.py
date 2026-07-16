@@ -197,9 +197,7 @@ def _generate_vitals(rng: random.Random) -> dict[str, str]:
     }
 
 
-def _generate_single_patient_record(
-    patient_number: int, rng: random.Random
-) -> PatientRecord:
+def _generate_single_patient_record(patient_number: int, rng: random.Random) -> PatientRecord:
     """Generate a single synthetic patient record.
 
     Args:
@@ -243,9 +241,7 @@ def _generate_single_patient_record(
     )
 
 
-def generate_patient_records(
-    count: int, seed: int | None = None
-) -> list[PatientRecord]:
+def generate_patient_records(count: int, seed: int | None = None) -> list[PatientRecord]:
     """Generate a list of synthetic patient records.
 
     Args:
@@ -256,9 +252,7 @@ def generate_patient_records(
         list[PatientRecord]: The generated synthetic patient records.
     """
     rng = random.Random(seed)
-    return [
-        _generate_single_patient_record(number, rng) for number in range(1, count + 1)
-    ]
+    return [_generate_single_patient_record(number, rng) for number in range(1, count + 1)]
 
 
 def _format_bullet_list(items: list[str]) -> str:

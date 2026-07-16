@@ -90,12 +90,8 @@ def build_graph(
         CompiledStateGraph: The compiled, executable agent graph.
     """
     active_settings = settings or get_settings()
-    active_generation_client = generation_client or build_generation_client(
-        active_settings
-    )
-    active_evaluation_client = evaluation_client or build_faithfulness_client(
-        active_settings
-    )
+    active_generation_client = generation_client or build_generation_client(active_settings)
+    active_evaluation_client = evaluation_client or build_faithfulness_client(active_settings)
     active_tool_router = tool_router or build_default_tool_router(active_settings)
 
     graph = StateGraph(AgentState)
@@ -112,9 +108,7 @@ def build_graph(
     graph.add_node("generator", make_generator_node(active_generation_client))
     graph.add_node(
         "evaluator",
-        make_evaluator_node(
-            active_evaluation_client, active_settings.enable_evaluation
-        ),
+        make_evaluator_node(active_evaluation_client, active_settings.enable_evaluation),
     )
 
     graph.set_entry_point("planner")

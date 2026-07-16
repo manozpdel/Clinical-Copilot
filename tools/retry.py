@@ -53,6 +53,4 @@ def retry_call[T](
             if attempt < max_attempts - 1:
                 time.sleep(delay_seconds)
 
-    raise RetryExhaustedError(
-        f"Call failed after {max_attempts} attempt(s)."
-    ) from last_error
+    raise RetryExhaustedError(f"Call failed after {max_attempts} attempt(s).") from last_error

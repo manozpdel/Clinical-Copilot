@@ -12,9 +12,7 @@ _ALLOWED_JSON_CONTENT_TYPES = ("application/json",)
 _ALLOWED_MULTIPART_CONTENT_TYPES = ("multipart/form-data",)
 
 
-def is_valid_content_type(
-    content_type: str | None, allowed_prefixes: tuple[str, ...]
-) -> bool:
+def is_valid_content_type(content_type: str | None, allowed_prefixes: tuple[str, ...]) -> bool:
     """Check whether a request's Content-Type header is acceptable.
 
     Args:

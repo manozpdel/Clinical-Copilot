@@ -104,9 +104,7 @@ class GroqWhisperTranscriber(Transcriber):
 
         for attempt in range(max_attempts):
             try:
-                logger.info(
-                    "transcription_started", model=self._model, attempt=attempt
-                )
+                logger.info("transcription_started", model=self._model, attempt=attempt)
                 call_start = time.monotonic()
                 with trace_span("voice.transcribe", model=self._model, attempt=attempt):
                     response = self._client.audio.transcriptions.create(
@@ -137,9 +135,7 @@ class GroqWhisperTranscriber(Transcriber):
                 )
                 time.sleep(delay)
 
-        logger.error(
-            "transcription_failed", model=self._model, attempts=max_attempts
-        )
+        logger.error("transcription_failed", model=self._model, attempts=max_attempts)
         raise TranscriptionError(
             f"Transcription failed after {max_attempts} attempt(s)."
         ) from last_error

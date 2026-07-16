@@ -27,3 +27,8 @@ data/raw/patients/*
 
 data/processed/*
 !data/processed/.gitkeep
+
+.env
+*.log
+__pycache__/
+*.pyc

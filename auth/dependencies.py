@@ -40,22 +40,16 @@ async def get_current_user(
             token is invalid or expired, or the user no longer exists.
     """
     if credentials is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated."
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated.")
 
     try:
         subject = decode_token(credentials.credentials, settings, expected_type="access")
     except TokenError as error:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail=str(error)
-        ) from error
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(error)) from error
 
     user = await get_user_by_id(db, subject)
     if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found."
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found.")
 
     return user
 
@@ -88,22 +82,16 @@ async def get_current_user_query_token(
     token = credentials.credentials if credentials else request.query_params.get("token")
 
     if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated."
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated.")
 
     try:
         subject = decode_token(token, settings, expected_type="access")
     except TokenError as error:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail=str(error)
-        ) from error
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(error)) from error
 
     user = await get_user_by_id(db, subject)
     if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found."
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found.")
 
     return user
 

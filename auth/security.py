@@ -52,6 +52,4 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     Returns:
         bool: True if the password matches the hash.
     """
-    return _pwd_context.verify(
-        _truncate_to_bcrypt_limit(plain_password), hashed_password
-    )
+    return _pwd_context.verify(_truncate_to_bcrypt_limit(plain_password), hashed_password)

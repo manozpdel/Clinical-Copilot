@@ -68,9 +68,7 @@ def test_check_memory_returns_healthy_with_detail() -> None:
 
 async def test_check_database_reports_unhealthy_for_bad_url() -> None:
     """An unreachable database URL should be reported as unhealthy."""
-    settings = Settings(
-        database_url="postgresql+asyncpg://baduser:badpass@localhost:1/nonexistent"
-    )
+    settings = Settings(database_url="postgresql+asyncpg://baduser:badpass@localhost:1/nonexistent")
     service = HealthService(settings)
 
     result = await service.check_database()

@@ -188,9 +188,7 @@ def test_pipeline_reuses_conversation_across_turns(tmp_path: Path) -> None:
     audio_path.write_bytes(b"RIFF" + b"\x00" * 40)
 
     first_result = pipeline.run(audio_path)
-    second_result = pipeline.run(
-        audio_path, conversation_id=first_result.conversation_id
-    )
+    second_result = pipeline.run(audio_path, conversation_id=first_result.conversation_id)
 
     assert second_result.conversation_id == first_result.conversation_id
     assert len(second_result.history) == 4

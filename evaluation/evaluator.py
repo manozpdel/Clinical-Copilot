@@ -90,9 +90,7 @@ def evaluate_single_item(
 
     context = build_context(result.context_chunks)
     faithfulness = score_faithfulness(context, result.answer, faithfulness_client)
-    answer_relevance = score_answer_relevance(
-        item.question, result.answer, relevance_client
-    )
+    answer_relevance = score_answer_relevance(item.question, result.answer, relevance_client)
 
     return EvaluationResult(
         question=item.question,
@@ -171,8 +169,6 @@ def run_evaluation(
 
     summary = aggregate_results(results)
     elapsed = time.monotonic() - start_time
-    logger.info(
-        "evaluation_completed", question_count=len(dataset), elapsed_seconds=elapsed
-    )
+    logger.info("evaluation_completed", question_count=len(dataset), elapsed_seconds=elapsed)
 
     return results, summary

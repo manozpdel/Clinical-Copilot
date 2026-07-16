@@ -90,9 +90,7 @@ def get_chroma_collection(settings: Settings) -> Any:
     return client.get_or_create_collection(name=settings.collection_name)
 
 
-def store_chunks(
-    chunks: list[Chunk], embedder: EmbeddingModel, settings: Settings
-) -> int:
+def store_chunks(chunks: list[Chunk], embedder: EmbeddingModel, settings: Settings) -> int:
     """Embed and upsert chunks into the persistent Chroma collection.
 
     Args:

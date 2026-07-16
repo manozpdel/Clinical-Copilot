@@ -61,9 +61,7 @@ def score_faithfulness(context: str, answer: str, client: GroqClient) -> float:
         float: A faithfulness score in the range [0.0, 1.0].
     """
     prompt = _FAITHFULNESS_TEMPLATE.format(context=context, answer=answer)
-    raw_response = client.generate(
-        system_prompt=_JUDGE_SYSTEM_PROMPT, user_prompt=prompt
-    )
+    raw_response = client.generate(system_prompt=_JUDGE_SYSTEM_PROMPT, user_prompt=prompt)
     return _parse_score(raw_response)
 
 
@@ -79,7 +77,5 @@ def score_answer_relevance(question: str, answer: str, client: GroqClient) -> fl
         float: An answer relevance score in the range [0.0, 1.0].
     """
     prompt = _RELEVANCE_TEMPLATE.format(question=question, answer=answer)
-    raw_response = client.generate(
-        system_prompt=_JUDGE_SYSTEM_PROMPT, user_prompt=prompt
-    )
+    raw_response = client.generate(system_prompt=_JUDGE_SYSTEM_PROMPT, user_prompt=prompt)
     return _parse_score(raw_response)

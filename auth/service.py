@@ -120,9 +120,7 @@ class AuthService:
                 associated user no longer exists.
         """
         try:
-            subject = decode_token(
-                refresh_token, self._settings, expected_type="refresh"
-            )
+            subject = decode_token(refresh_token, self._settings, expected_type="refresh")
         except TokenError as error:
             raise AuthError("Invalid or expired refresh token.") from error
 

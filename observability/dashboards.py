@@ -44,12 +44,32 @@ def recommended_dashboard_panels() -> list[dict[str, Any]]:
     return [
         {"title": "Request Rate", "metric": "http_requests_total", "type": "graph"},
         {"title": "Error Rate", "metric": "http_errors_total", "type": "graph"},
-        {"title": "Request Latency (p95)", "metric": "http_request_duration_seconds", "type": "heatmap"},
+        {
+            "title": "Request Latency (p95)",
+            "metric": "http_request_duration_seconds",
+            "type": "heatmap",
+        },
         {"title": "LLM Call Latency", "metric": "llm_call_duration_seconds", "type": "graph"},
         {"title": "Token Usage", "metric": "llm_tokens_total", "type": "graph"},
-        {"title": "Retriever Latency", "metric": "retriever_query_duration_seconds", "type": "graph"},
+        {
+            "title": "Retriever Latency",
+            "metric": "retriever_query_duration_seconds",
+            "type": "graph",
+        },
         {"title": "Database Latency", "metric": "database_query_duration_seconds", "type": "graph"},
-        {"title": "Tool Execution Latency", "metric": "tool_execution_duration_seconds", "type": "graph"},
-        {"title": "Voice Transcription Latency", "metric": "voice_transcription_duration_seconds", "type": "graph"},
-        {"title": "LangGraph Node Duration", "metric": "langgraph_node_duration_seconds", "type": "graph"},
+        {
+            "title": "Tool Execution Latency",
+            "metric": "tool_execution_duration_seconds",
+            "type": "graph",
+        },
+        {
+            "title": "Voice Transcription Latency",
+            "metric": "voice_transcription_duration_seconds",
+            "type": "graph",
+        },
+        {
+            "title": "LangGraph Node Duration",
+            "metric": "langgraph_node_duration_seconds",
+            "type": "graph",
+        },
     ]

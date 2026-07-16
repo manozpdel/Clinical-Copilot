@@ -21,22 +21,39 @@ from tools.validator import ToolValidationError, validate_tool_input, validate_t
 
 logger = get_logger(__name__)
 
-_PATIENT_ID_PATTERN = re.compile(
-    r"\bP(?:ATIENT)?[\s_-]*0*(\d{1,4})\b", re.IGNORECASE
-)
+_PATIENT_ID_PATTERN = re.compile(r"\bP(?:ATIENT)?[\s_-]*0*(\d{1,4})\b", re.IGNORECASE)
 
 _EHR_KEYWORDS: tuple[str, ...] = (
-    "medication", "medications", "allergy", "allergies", "medical history",
-    "demographic", "demographics", "lab", "labs",
+    "medication",
+    "medications",
+    "allergy",
+    "allergies",
+    "medical history",
+    "demographic",
+    "demographics",
+    "lab",
+    "labs",
 )
 
 _NOTES_KEYWORDS: tuple[str, ...] = (
-    "note", "notes", "visit", "assessment", "physician", "chief complaint",
+    "note",
+    "notes",
+    "visit",
+    "assessment",
+    "physician",
+    "chief complaint",
 )
 
 _WEARABLES_KEYWORDS: tuple[str, ...] = (
-    "heart rate", "blood pressure", "sleep", "activity", "steps",
-    "wearable", "wearables", "trend", "trends",
+    "heart rate",
+    "blood pressure",
+    "sleep",
+    "activity",
+    "steps",
+    "wearable",
+    "wearables",
+    "trend",
+    "trends",
 )
 
 
@@ -125,9 +142,7 @@ class ToolRouter:
 
         if tool_name == ToolName.RETRIEVAL.value:
             logger.info("tool_router_fallback_to_retrieval", question=question)
-            return ToolExecutionResult(
-                tool_name=tool_name, patient_id=patient_id, success=True
-            )
+            return ToolExecutionResult(tool_name=tool_name, patient_id=patient_id, success=True)
 
         start = time.monotonic()
         try:

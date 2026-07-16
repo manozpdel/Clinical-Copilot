@@ -194,9 +194,7 @@ def chunk_document(
                 "chunk_id": chunk_id,
                 "source_file": source_file,
             }
-            chunks.append(
-                Chunk(chunk_id=chunk_id, text=chunk_text_with_id, metadata=metadata)
-            )
+            chunks.append(Chunk(chunk_id=chunk_id, text=chunk_text_with_id, metadata=metadata))
             chunk_index += 1
 
     return chunks

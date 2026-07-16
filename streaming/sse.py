@@ -205,9 +205,7 @@ async def stream_voice_endpoint(
         except TranscriptionError as error:
             raise HTTPException(status_code=422, detail=str(error)) from error
 
-    generator = service.stream_voice_query(
-        transcription.text, conversation_id, current_user.id, db
-    )
+    generator = service.stream_voice_query(transcription.text, conversation_id, current_user.id, db)
     return StreamingResponse(
         _with_heartbeat(request, generator, settings.stream_heartbeat_interval),
         media_type="text/event-stream",

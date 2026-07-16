@@ -151,9 +151,7 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
         if auth_header.lower().startswith("bearer "):
             token = auth_header[7:]
             try:
-                request.state.user_id = decode_token(
-                    token, self._settings, expected_type="access"
-                )
+                request.state.user_id = decode_token(token, self._settings, expected_type="access")
             except TokenError:
                 pass
 

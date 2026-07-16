@@ -85,9 +85,7 @@ async def submit_query(
         HTTPException: With status 429 if the user's quota has been
             exceeded.
     """
-    bind_request_context(
-        user_id=str(current_user.id), endpoint="/api/query", component="api"
-    )
+    bind_request_context(user_id=str(current_user.id), endpoint="/api/query", component="api")
 
     try:
         await check_quota_before_request(db, current_user.id, settings)
@@ -96,9 +94,7 @@ async def submit_query(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=str(error)
         ) from error
 
-    result = service.run_query(
-        question=payload.question, conversation_id=payload.conversation_id
-    )
+    result = service.run_query(question=payload.question, conversation_id=payload.conversation_id)
 
     usage = estimate_usage(
         model=settings.generation_model,

@@ -93,13 +93,9 @@ async def login(
         HTTPException: With status 401 if the credentials are invalid.
     """
     try:
-        _, access_token, refresh_token = await service.login(
-            request.email, request.password
-        )
+        _, access_token, refresh_token = await service.login(request.email, request.password)
     except AuthError as error:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail=str(error)
-        ) from error
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(error)) from error
 
     return TokenResponse(access_token=access_token, refresh_token=refresh_token)
 
@@ -127,9 +123,7 @@ async def refresh(
     try:
         _, access_token, refresh_token = await service.refresh(request.refresh_token)
     except AuthError as error:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail=str(error)
-        ) from error
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(error)) from error
 
     return TokenResponse(access_token=access_token, refresh_token=refresh_token)
 
@@ -159,9 +153,7 @@ async def login_google(
     try:
         _, access_token, refresh_token = await service.google_login(request.id_token)
     except AuthError as error:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail=str(error)
-        ) from error
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(error)) from error
 
     return TokenResponse(access_token=access_token, refresh_token=refresh_token)
 

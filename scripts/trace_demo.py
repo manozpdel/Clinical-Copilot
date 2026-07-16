@@ -19,7 +19,9 @@ def main() -> None:
             logger.info("inner_span_work")
         logger.info("outer_span_finished")
 
-    print("Trace demo complete. Enable ENABLE_TRACING and set OTEL_EXPORTER_OTLP_ENDPOINT to export spans.")
+    print(
+        "Trace demo complete. Enable ENABLE_TRACING and set OTEL_EXPORTER_OTLP_ENDPOINT to export spans."
+    )
 
 
 if __name__ == "__main__":

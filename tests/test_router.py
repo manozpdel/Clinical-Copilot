@@ -68,18 +68,14 @@ def test_select_tool_routes_medications_to_ehr() -> None:
     """A medications question with a patient ID should route to the EHR tool."""
     router = _build_router()
 
-    assert router.select_tool("Show medications for patient P0005") == (
-        ToolName.EHR.value
-    )
+    assert router.select_tool("Show medications for patient P0005") == (ToolName.EHR.value)
 
 
 def test_select_tool_routes_medications_with_flexible_phrasing() -> None:
     """A medications question phrased as 'patient 005' should still route to EHR."""
     router = _build_router()
 
-    assert router.select_tool("Show medications for patient 005") == (
-        ToolName.EHR.value
-    )
+    assert router.select_tool("Show medications for patient 005") == (ToolName.EHR.value)
 
 
 def test_select_tool_routes_visit_to_notes() -> None:
@@ -104,9 +100,7 @@ def test_select_tool_falls_back_to_retrieval_without_patient_id() -> None:
     """A question without a patient ID should fall back to retrieval."""
     router = _build_router()
 
-    assert router.select_tool("What medications treat hypertension?") == (
-        ToolName.RETRIEVAL.value
-    )
+    assert router.select_tool("What medications treat hypertension?") == (ToolName.RETRIEVAL.value)
 
 
 def test_route_executes_ehr_tool_successfully() -> None:

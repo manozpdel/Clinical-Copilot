@@ -51,9 +51,7 @@ def rate_limit_string() -> str:
     return f"{settings.rate_limit_per_minute}/minute;{settings.rate_limit_per_hour}/hour"
 
 
-async def rate_limit_exceeded_handler(
-    request: Request, exc: RateLimitExceeded
-) -> JSONResponse:
+async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
     """Return a structured HTTP 429 response for rate-limited requests.
 
     Args:

@@ -6,9 +6,7 @@ metrics. It contains no logging, tracing, or health-check logic.
 
 from prometheus_client import Counter, Histogram
 
-REQUEST_COUNT = Counter(
-    "http_requests_total", "Total HTTP requests.", ["method", "path", "status"]
-)
+REQUEST_COUNT = Counter("http_requests_total", "Total HTTP requests.", ["method", "path", "status"])
 ERROR_COUNT = Counter(
     "http_errors_total", "Total HTTP requests resulting in an error.", ["method", "path"]
 )
@@ -16,18 +14,12 @@ REQUEST_LATENCY = Histogram(
     "http_request_duration_seconds", "HTTP request duration.", ["method", "path"]
 )
 
-LLM_LATENCY = Histogram(
-    "llm_call_duration_seconds", "Groq LLM call duration.", ["model"]
-)
-LLM_TOKENS = Counter(
-    "llm_tokens_total", "Total LLM tokens consumed.", ["model", "token_type"]
-)
+LLM_LATENCY = Histogram("llm_call_duration_seconds", "Groq LLM call duration.", ["model"])
+LLM_TOKENS = Counter("llm_tokens_total", "Total LLM tokens consumed.", ["model", "token_type"])
 RETRIEVER_LATENCY = Histogram(
     "retriever_query_duration_seconds", "Chroma retriever query duration."
 )
-DATABASE_LATENCY = Histogram(
-    "database_query_duration_seconds", "Database query duration."
-)
+DATABASE_LATENCY = Histogram("database_query_duration_seconds", "Database query duration.")
 TOOL_LATENCY = Histogram(
     "tool_execution_duration_seconds", "Mock clinical tool execution duration.", ["tool_name"]
 )

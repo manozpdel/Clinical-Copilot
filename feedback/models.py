@@ -36,9 +36,7 @@ class Feedback(Base):
     """
 
     __tablename__ = "feedback"
-    __table_args__ = (
-        UniqueConstraint("user_id", "query_id", name="uq_feedback_user_query"),
-    )
+    __table_args__ = (UniqueConstraint("user_id", "query_id", name="uq_feedback_user_query"),)
 
     id: Mapped[uuid.UUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(
@@ -81,9 +79,7 @@ class Rating(Base):
     """
 
     __tablename__ = "ratings"
-    __table_args__ = (
-        UniqueConstraint("user_id", "query_id", name="uq_rating_user_query"),
-    )
+    __table_args__ = (UniqueConstraint("user_id", "query_id", name="uq_rating_user_query"),)
 
     id: Mapped[uuid.UUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(

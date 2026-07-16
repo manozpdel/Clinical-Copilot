@@ -37,9 +37,7 @@ async def test_create_user_and_conversation_relationship(db_session) -> None:
     await db_session.commit()
     await db_session.refresh(user)
 
-    result = await db_session.execute(
-        select(Conversation).where(Conversation.user_id == user.id)
-    )
+    result = await db_session.execute(select(Conversation).where(Conversation.user_id == user.id))
     fetched = result.scalar_one()
 
     assert fetched.title == "First chat"
@@ -67,15 +65,11 @@ async def test_query_belongs_to_conversation(db_session) -> None:
     db_session.add(query)
     await db_session.commit()
 
-    result = await db_session.execute(
-        select(Query).where(Query.conversation_id == conversation.id)
-    )
+    result = await db_session.execute(select(Query).where(Query.conversation_id == conversation.id))
     fetched = result.scalar_one()
 
     assert fetched.query_text == "What medications is P0005 taking?"
-    assert fetched.citations == [
-        "[Citation: Patient P0005, Chunk tool_ehr_P0005, mock_ehr_api]"
-    ]
+    assert fetched.citations == ["[Citation: Patient P0005, Chunk tool_ehr_P0005, mock_ehr_api]"]
     assert fetched.evaluation == {"faithfulness": 0.9}
 
 

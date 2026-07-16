@@ -35,9 +35,7 @@ class UsageLog(Base):
 
     __tablename__ = "usage_logs"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        GUID(), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(
         GUID(), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
@@ -77,9 +75,7 @@ class Quota(Base):
 
     __tablename__ = "quotas"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        GUID(), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(
         GUID(),
         ForeignKey("users.id", ondelete="CASCADE"),
@@ -87,14 +83,8 @@ class Quota(Base):
         unique=True,
         index=True,
     )
-    daily_request_count: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=0
-    )
+    daily_request_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     daily_reset_date: Mapped[date] = mapped_column(Date, nullable=False)
-    monthly_token_count: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=0
-    )
-    monthly_cost_usd: Mapped[float] = mapped_column(
-        Float, nullable=False, default=0.0
-    )
+    monthly_token_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    monthly_cost_usd: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     monthly_reset_month: Mapped[date] = mapped_column(Date, nullable=False)

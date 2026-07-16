@@ -55,9 +55,7 @@ def make_planner_node() -> NodeFn:
     return node
 
 
-def tool_output_to_chunk(
-    tool_name: str, patient_id: str, data: dict[str, Any]
-) -> RetrievedChunk:
+def tool_output_to_chunk(tool_name: str, patient_id: str, data: dict[str, Any]) -> RetrievedChunk:
     """Adapt a mock tool's structured output into a RetrievedChunk.
 
     This lets the existing generator/evaluator nodes and the streaming

@@ -74,9 +74,7 @@ class GroqClient:
         """Return the model name this client instance uses."""
         return self._model
 
-    def _compute_backoff_delay(
-        self, attempt: int, retry_after: float | None
-    ) -> float:
+    def _compute_backoff_delay(self, attempt: int, retry_after: float | None) -> float:
         """Compute the delay to wait before the next retry attempt."""
         if retry_after is not None:
             base_delay = retry_after
@@ -105,14 +103,10 @@ class GroqClient:
             self._rate_limiter.acquire()
 
             try:
-                logger.info(
-                    "llm_generation_started", model=self._model, attempt=attempt
-                )
+                logger.info("llm_generation_started", model=self._model, attempt=attempt)
                 call_start = time.monotonic()
                 with trace_span("llm.generate", model=self._model, attempt=attempt):
-                    response = self._llm.invoke(
-                        [("system", system_prompt), ("human", user_prompt)]
-                    )
+                    response = self._llm.invoke([("system", system_prompt), ("human", user_prompt)])
                 record_llm_latency(self._model, time.monotonic() - call_start)
                 logger.info("llm_generation_completed", model=self._model)
                 return str(response.content)
@@ -162,9 +156,7 @@ class GroqClient:
         call_start = time.monotonic()
 
         with trace_span("llm.generate_stream", model=self._model):
-            for chunk in self._llm.stream(
-                [("system", system_prompt), ("human", user_prompt)]
-            ):
+            for chunk in self._llm.stream([("system", system_prompt), ("human", user_prompt)]):
                 piece = chunk.content
                 if piece:
                     yield piece
@@ -191,6 +183,4 @@ def build_faithfulness_client(settings: Settings) -> GroqClient:
 
 def build_relevance_client(settings: Settings) -> GroqClient:
     """Build the GroqClient used for answer relevance judging."""
-    return GroqClient(
-        settings, api_key=settings.relevance_api_key, model=settings.relevance_model
-    )
+    return GroqClient(settings, api_key=settings.relevance_api_key, model=settings.relevance_model)
