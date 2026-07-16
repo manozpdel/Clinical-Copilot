@@ -12,6 +12,6 @@ __pycache__
 .ruff_cache
 
 tests
-README.md
+
 .gitignore
 .pre-commit-config.yaml

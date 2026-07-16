@@ -161,6 +161,25 @@ class Settings(BaseSettings):
             active.
         max_stream_duration: Maximum seconds a single stream may run
             before being forcibly terminated.
+        is_production: Whether the app is running under the production
+            Docker Compose profile (nginx-fronted, multi-worker).
+        workers: Number of Uvicorn worker processes for production.
+        trusted_proxy_headers: Whether to trust X-Forwarded-* headers
+            (enable only behind the bundled Nginx reverse proxy).
+        redis_url: Connection string for the shared Redis instance.
+        celery_broker_url: Redis DB used as the Celery message broker.
+        celery_result_backend: Redis DB used to store Celery task
+            results.
+        celery_task_time_limit: Hard time limit, in seconds, for a
+            Celery task before it is killed.
+        celery_task_max_retries: Default max retry count for Celery
+            tasks.
+        celery_beat_cleanup_schedule_hours: Interval, in hours, between
+            scheduled cleanup task runs.
+        docker_image_tag: Tag applied to built production images.
+        backup_retention_days: Days to retain PostgreSQL backups before
+            pruning.
+        allowed_container_uid: Non-root UID containers run as.
     """
 
     app_name: str = "Clinical Copilot API"
@@ -268,6 +287,30 @@ class Settings(BaseSettings):
     stream_heartbeat_interval: float = 15.0
     enable_websockets: bool = True
     max_stream_duration: float = 120.0
+
+    # Production / deployment
+    is_production: bool = False
+    workers: int = 4
+    trusted_proxy_headers: bool = False
+
+    # Redis
+    redis_url: str = "redis://localhost:6379/0"
+
+    # Celery
+    celery_broker_url: str = "redis://localhost:6379/1"
+    celery_result_backend: str = "redis://localhost:6379/2"
+    celery_task_time_limit: int = 300
+    celery_task_max_retries: int = 3
+    celery_beat_cleanup_schedule_hours: int = 24
+
+    # Deployment / security
+    docker_image_tag: str = "latest"
+    backup_retention_days: int = 14
+    allowed_container_uid: int = 1000
+
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_oauth_redirect_uri: str = "http://localhost:8000/auth/google/callback" 
 
     model_config = SettingsConfigDict(
         env_file=".env",
