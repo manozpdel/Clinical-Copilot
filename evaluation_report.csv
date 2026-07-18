@@ -1,11 +1,11 @@
 question,recall_at_k,reciprocal_rank,faithfulness,answer_relevance,latency_seconds
-What medications is patient_001 taking?,1.0,1.0,1.0,0.9,0.8864620829999694
-What allergies does patient_001 have?,1.0,1.0,0.8,0.8,0.5092473750000863
-What is the chief complaint for patient_001?,1.0,1.0,0.9,0.9,0.6436231249999764
-What medications is patient_002 taking?,1.0,1.0,0.9,0.9,0.6615719159999571
-What allergies does patient_002 have?,1.0,1.0,0.9,0.9,0.9112464170000294
-What is the chief complaint for patient_002?,1.0,0.16666666666666666,0.9,0.9,0.4439527499998803
-What medications is patient_003 taking?,1.0,1.0,0.8,0.9,0.6146432919999825
-What allergies does patient_003 have?,1.0,1.0,0.8,0.9,0.497671832999913
-What is the chief complaint for patient_003?,1.0,1.0,0.9,0.9,0.5702820829999382
-What medications is patient_004 taking?,1.0,1.0,0.8,0.9,0.5930507919999854
+What medications is patient_001 taking?,1.0,1.0,0.9,0.9,9.128976167000019
+What allergies does patient_001 have?,1.0,1.0,0.5,0.8,0.4112763339999219
+What is the chief complaint for patient_001?,1.0,1.0,0.9,0.9,0.3432636249999632
+What medications is patient_002 taking?,1.0,1.0,0.9,0.9,0.4028637080000408
+What allergies does patient_002 have?,1.0,1.0,0.8,0.8,0.4520734579998589
+What is the chief complaint for patient_002?,1.0,0.16666666666666666,0.9,0.9,0.5266225000000304
+What medications is patient_003 taking?,1.0,1.0,0.8,0.9,0.4020033340000282
+What allergies does patient_003 have?,1.0,1.0,0.5,0.9,0.45957462499995927
+What is the chief complaint for patient_003?,1.0,1.0,1.0,0.9,0.376503208000031
+What medications is patient_004 taking?,1.0,1.0,0.8,0.9,0.4456686670000636

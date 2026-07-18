@@ -32,3 +32,6 @@ data/processed/*
 *.log
 __pycache__/
 *.pyc
+
+# CSV files
+*.csv
